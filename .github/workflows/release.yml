@@ -13,8 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: write
-      id-token: write
-      attestations: write
 
     steps:
       - name: Checkout
@@ -37,7 +35,6 @@ jobs:
       - name: Generate changelog
         id: changelog
         run: |
-          # Extract subject from last tag to this tag
           PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           CURRENT_TAG=${GITHUB_REF#refs/tags/}
 
@@ -47,7 +44,7 @@ jobs:
             LOG=$(git log --oneline --format="• %s (%h)")
           fi
 
-          CHANGELOG="## Changes since $PREV_TAG\n\n$LOG\n\n## Installation\n\n\`\`\`bash\nnpm install -g mendeley-cli\n\`\`\`\n\nOr:\n\n\`\`\`bash\nnpm install mendeley-cli\n\`\`\`\n\nSee the [full changelog](https://github.com/VictorTomaili/mendeley-cli/compare/$PREV_TAG..$CURRENT_TAG) on GitHub."
+          CHANGELOG="## Changes since $PREV_TAG\n\n$LOG\n\n## Installation\n\n\`\`\`bash\nnpm install -g mendeley-cli\n\`\`\`\n\nSee the [full changelog](https://github.com/VictorTomaili/mendeley-cli/compare/$PREV_TAG..$CURRENT_TAG) on GitHub."
 
           if [ -z "$PREV_TAG" ]; then
             CHANGELOG="## Initial release (v$CURRENT_TAG)\n\n$LOG\n\n## Installation\n\n\`\`\`bash\nnpm install -g mendeley-cli\n\`\`\`\n\nOr:\n\n\`\`\`bash\nnpm install mendeley-cli\n\`\`\`\`"
@@ -69,5 +66,4 @@ jobs:
       - name: Publish to npm
         uses: npm/publish@v4
         with:
-          provenance: true
-          attestations: true
+          token: ${{ secrets.NPM_TOKEN }}
