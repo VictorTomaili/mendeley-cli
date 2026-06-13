@@ -3,7 +3,7 @@
 ## Project Facts
 
 - This repository is `mendeley-cli`: an ESM-only Node.js CLI and JavaScript SDK for the Mendeley API.
-- Runtime target is Node.js `>=20` from `package.json`; CI currently runs unit tests on Node 22 and 24 only.
+- Runtime target is Node.js `>=22` from `package.json`; CI currently runs unit tests on Node 22 and 24.
 - There is no build step. Source files are shipped directly from `src/`, `lib/`, and `bin/`.
 - The package entry point is `src/index.js`; the executable is `bin/mendeley.js`.
 - The project intentionally keeps dependencies near zero. `open` is optional; do not add runtime dependencies unless the gain is concrete and the API surface cannot stay simple without them.
@@ -118,7 +118,5 @@ Local note: if the environment routes `npm` through another package manager and 
 
 ## Known Weak Points
 
-- CI tests Node 22 and 24, while `package.json` allows Node `>=20`; if using APIs newer than Node 20, either avoid them or update the engine policy deliberately.
-- `CONTRIBUTING.md` says integration tests hit the live API, but the current integration test uses mocked `fetch`. Do not copy that claim into new docs without reconciling it.
-- The custom parser is intentionally small. Adding complex CLI syntax can break existing flag-before-command behavior.
+- The custom parser is intentionally small and adequate for the current command surface. Adding complex CLI syntax can break existing flag-before-command behavior.
 - `src/session.js` retries once after a 401. Changes to this logic can silently affect every API call.

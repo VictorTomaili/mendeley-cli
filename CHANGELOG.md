@@ -11,8 +11,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Node.js**: CI matrix is now Node 22 + 24 (latest 2 LTS lines).
   Dropped Node 18 and Node 20 from the test matrix (both are EOL).
-  The `engines` field in `package.json` is now `>=20.0.0`; update
-  accordingly if you were on Node 18.
+  The `engines` field in `package.json` is now `>=22.0.0`; update
+  accordingly if you were on Node 18 or Node 20.
+- **Docs**: CONTRIBUTING now reflects the current mocked-fetch integration
+  tests instead of describing them as live Mendeley API tests.
 
 ## [1.0.0] - 2026-06-13
 

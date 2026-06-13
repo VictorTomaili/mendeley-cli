@@ -26,7 +26,7 @@ test/                   Unit + integration tests
 
 ## Development setup
 
-Requirements: **Node.js >= 20** (see `engines` in `package.json`).
+Requirements: **Node.js >= 22** (see `engines` in `package.json`).
 
 ```bash
 git clone https://github.com/VictorTomaili/mendeley-cli.git
@@ -45,10 +45,10 @@ npm run test:unit              # unit tests only
 npm run test:integration       # integration tests only
 ```
 
-Integration tests hit the live Mendeley API, so they require valid
-credentials. See `Configure credentials` in [README.md](README.md#configure-credentials)
-or set the `MENDELEY_CLIENT_ID` / `MENDELEY_CLIENT_SECRET` environment
-variables. They are skipped automatically when credentials are missing.
+The current integration tests use mocked `fetch` responses and do not hit
+the live Mendeley API. If live API coverage is added later, keep it opt-in,
+gate it behind explicit credentials/environment flags, and skip it by
+default when credentials are missing.
 
 ## Code style
 
