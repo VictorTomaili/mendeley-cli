@@ -317,6 +317,14 @@ src/                    JavaScript SDK
 test/                   51 tests (unit + integration)
 ```
 
+## Security
+
+Please **do not** file public GitHub issues for suspected vulnerabilities.
+See [SECURITY.md](SECURITY.md) for the supported versions, how to report a
+vulnerability privately, and our response timeline. Reports can be opened
+via [GitHub Security Advisories](https://github.com/VictorTomaili/mendeley-cli/security/advisories/new)
+or emailed to the maintainer.
+
 ## License
 
 [Apache-2.0](LICENSE)
