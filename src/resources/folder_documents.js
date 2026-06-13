@@ -20,4 +20,31 @@ export class FolderDocuments extends ListResource {
   _objType() {
     return UserDocument;
   }
+
+  /**
+   * Add an existing document to this folder.
+   *
+   * @param {string} documentId
+   * @returns {Promise<UserDocument>}
+   */
+  async add(documentId) {
+    const rsp = await this.session.post(this._url, {
+      data: JSON.stringify({ id: documentId }),
+      headers: {
+        'content-type': UserDocument.contentType,
+        accept: UserDocument.contentType,
+      },
+    });
+    return new UserDocument(this.session, await rsp.json());
+  }
+
+  /**
+   * Remove a document from this folder (the document itself is not
+   * deleted from the library).
+   *
+   * @param {string} documentId
+   */
+  async remove(documentId) {
+    await this.session.delete(`${this._url}/${documentId}`);
+  }
 }
