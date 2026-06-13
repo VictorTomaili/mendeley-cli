@@ -193,6 +193,99 @@ test('auth url saves PKCE verifier to disk without printing it', async () => {
   assert.equal(saved.redirect_uri, 'http://localhost:11595');
 });
 
+/* ── auth set / auth unset: no token leakage into credentials.json ───────── */
+
+test('auth set does not copy token.json material into credentials.json', async () => {
+  const { env, configFile, tokenFile } = createAuthEnv('http://api.test.invalid');
+  // Pre-populate token.json as if `auth login` had just completed.
+  writeFileSync(
+    tokenFile,
+    JSON.stringify({ access_token: ACCESS_TOKEN, refresh_token: REFRESH_TOKEN }),
+  );
+  // Also set the token env vars that loadCredentials() merges in.
+  env.MENDELEY_ACCESS_TOKEN = ACCESS_TOKEN;
+  env.MENDELEY_REFRESH_TOKEN = REFRESH_TOKEN;
+
+  const result = await runCli(['auth', 'set', 'clientId', 'NEW_CLIENT_ID'], { env });
+  assert.equal(result.code, 0, result.stderr || result.stdout);
+
+  const written = JSON.parse(readFileSync(configFile, 'utf8'));
+
+  // The newly set key is present.
+  assert.equal(written.clientId, 'NEW_CLIENT_ID');
+  // No token material leaked from token.json or env vars.
+  assert.equal(written.accessToken, undefined);
+  assert.equal(written.refreshToken, undefined);
+  assert.equal(written.access_token, undefined);
+  assert.equal(written.refresh_token, undefined);
+  // And as raw text, the bearer material must not appear.
+  const raw = readFileSync(configFile, 'utf8');
+  assert.doesNotMatch(raw, new RegExp(ACCESS_TOKEN));
+  assert.doesNotMatch(raw, new RegExp(REFRESH_TOKEN));
+});
+
+test('auth set strips legacy token keys already present in credentials.json', async () => {
+  const { env, configFile } = createAuthEnv('http://api.test.invalid');
+  // Simulate a credentials.json from a pre-fix version that has token
+  // keys persisted. auth set should write back without them.
+  writeFileSync(
+    configFile,
+    JSON.stringify({
+      clientId: 'OLD_CLIENT_ID',
+      accessToken: ACCESS_TOKEN,
+      refreshToken: REFRESH_TOKEN,
+      host: 'https://api.mendeley.com',
+    }),
+  );
+
+  const result = await runCli(['auth', 'set', 'redirectUri', 'http://localhost:11595'], {
+    env,
+  });
+  assert.equal(result.code, 0, result.stderr || result.stdout);
+
+  const written = JSON.parse(readFileSync(configFile, 'utf8'));
+  assert.equal(written.clientId, 'OLD_CLIENT_ID');
+  assert.equal(written.host, 'https://api.mendeley.com');
+  assert.equal(written.redirectUri, 'http://localhost:11595');
+  assert.equal(written.accessToken, undefined);
+  assert.equal(written.refreshToken, undefined);
+});
+
+test('auth set rejects keys outside the allowlist', async () => {
+  const { env } = createAuthEnv('http://api.test.invalid');
+  const result = await runCli(['auth', 'set', 'accessToken', 'something'], { env });
+  assert.notEqual(result.code, 0, 'auth set should reject non-allowlisted keys');
+  assert.match(result.stdout + result.stderr, /Unknown credential key/);
+});
+
+test('auth unset does not copy token.json material into credentials.json', async () => {
+  const { env, configFile, tokenFile } = createAuthEnv('http://api.test.invalid');
+  // Pre-populate token.json + env vars.
+  writeFileSync(
+    tokenFile,
+    JSON.stringify({ access_token: ACCESS_TOKEN, refresh_token: REFRESH_TOKEN }),
+  );
+  env.MENDELEY_ACCESS_TOKEN = ACCESS_TOKEN;
+  env.MENDELEY_REFRESH_TOKEN = REFRESH_TOKEN;
+  // And a credentials.json with a real key to remove.
+  writeFileSync(
+    configFile,
+    JSON.stringify({ clientId: 'TO_REMOVE', redirectUri: 'http://localhost:11595' }),
+  );
+
+  const result = await runCli(['auth', 'unset', 'clientId'], { env });
+  assert.equal(result.code, 0, result.stderr || result.stdout);
+
+  const written = JSON.parse(readFileSync(configFile, 'utf8'));
+  assert.equal(written.clientId, undefined);
+  assert.equal(written.redirectUri, 'http://localhost:11595');
+  assert.equal(written.accessToken, undefined);
+  assert.equal(written.refreshToken, undefined);
+  const raw = readFileSync(configFile, 'utf8');
+  assert.doesNotMatch(raw, new RegExp(ACCESS_TOKEN));
+  assert.doesNotMatch(raw, new RegExp(REFRESH_TOKEN));
+});
+
 function createAuthEnv(host) {
   const root = mkdtempSync(join(tmpdir(), 'mendeley-auth-cli-'));
   const home = join(root, 'home');
@@ -222,7 +315,7 @@ function createAuthEnv(host) {
   delete env.MENDELEY_ACCESS_TOKEN;
   delete env.MENDELEY_REFRESH_TOKEN;
 
-  return { env, home, tokenFile };
+  return { env, home, configFile, tokenFile };
 }
 
 async function startAuthServer() {

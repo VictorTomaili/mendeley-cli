@@ -21,6 +21,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   throws before any token request is made. Passing a bare authorization
   code (no URL) still works and is the documented escape hatch for
   headless / advanced usage.
+- `auth set` and `auth unset` no longer copy session/token material
+  into `credentials.json`. They read the credentials file directly
+  (without merging `token.json` or token env vars) and only persist
+  allowlisted keys (`clientId`, `clientSecret`, `redirectUri`,
+  `host`). Non-allowlisted keys are now rejected by these commands.
 
 ### Changed
 
