@@ -43,6 +43,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   and then parsed with `JSON.parse` for the structured error message.
   This affected every command that surfaces an API error, e.g.
   `catalog by-identifier --doi <invalid>`.
+- `files add-sticky-note` and `files add-highlight` no longer fail
+  with `"Unexpected token '%' ... %PDF-1.3"`. The commands were
+  fetching `GET /files/{id}`, which on the Mendeley API returns a
+  302 redirect to the binary download URL (not the metadata JSON).
+  They now resolve the file metadata via the files list endpoint
+  and pass the resulting `File` model straight to
+  `addStickyNote`/`addHighlight`, which correctly POSTs to
+  `/annotations`. The `files get` fallback that had the same bug
+  is also fixed.
+- `files add-sticky-note`: the coordinate flags `--x` and `--y` are
+  now `--xpos` and `--ypos`. The old `--y` was silently swallowed
+  by the argparse layer because `y` is a reserved boolean flag
+  (the short form of `--yes`), so the y-coordinate value was never
+  passed to the API.
 - Path traversal in `File.download` (SDK) and `files download` (CLI)
   is now prevented. Both layers go through a new
   `src/safe_filename.js` helper that rejects filenames containing
