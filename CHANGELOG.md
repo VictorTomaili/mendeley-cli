@@ -31,6 +31,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   the bearer token from being sent to a malicious or compromised
   `next` / `prev` / `first` / `last` URL. Same-origin absolute URLs
   and relative paths continue to work as before.
+
+### Fixed
+
+- CLI crash on a non-OK API response (`Assertion failed:
+!(handle->flags & UV_HANDLE_CLOSING)`) — the error path in
+  `MendeleySession.request()` was reading the response body twice
+  (once via `.json()`, then again via `.text()` if the JSON parse
+  failed). The second read on Windows triggered a libuv assertion
+  in `src\win\async.c`. The body is now read exactly once as text
+  and then parsed with `JSON.parse` for the structured error message.
+  This affected every command that surfaces an API error, e.g.
+  `catalog by-identifier --doi <invalid>`.
 - Path traversal in `File.download` (SDK) and `files download` (CLI)
   is now prevented. Both layers go through a new
   `src/safe_filename.js` helper that rejects filenames containing

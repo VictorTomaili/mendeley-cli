@@ -182,15 +182,25 @@ function appendQuery(url, query) {
 }
 
 async function raiseApiError(rsp) {
-  let message = '';
+  // Read the response body exactly once. Reading it twice — e.g. via
+  // rsp.json() then rsp.text() — can trip a libuv `UV_HANDLE_CLOSING`
+  // assertion on Windows once the first read has closed the underlying
+  // handle (see issue #5: CLI crashes on a 404 from the catalog).
+  // Read the body as text once, then try to parse it as JSON for a
+  // structured error message; fall back to the raw text.
+  let raw = '';
   try {
-    const body = await rsp.json();
-    message = body.message || body.error_description || body.error || JSON.stringify(body);
+    raw = await rsp.text();
   } catch {
+    raw = '';
+  }
+  let message = raw;
+  if (raw) {
     try {
-      message = await rsp.text();
+      const body = JSON.parse(raw);
+      message = body.message || body.error_description || body.error || raw;
     } catch {
-      message = '';
+      // Not JSON; keep the raw text.
     }
   }
   throw new MendeleyException(
