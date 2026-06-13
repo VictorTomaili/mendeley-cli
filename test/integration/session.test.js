@@ -122,3 +122,158 @@ test('documents.iter yields items across pages', async () => {
   }
   assert.deepEqual(out, ['a', 'b', 'c']);
 });
+
+/* ── token-refresh regression coverage (issue #52) ───────────────────────── */
+
+/**
+ * Build a fetch mock that records every call and serves a queue of
+ * canned responses.  Each call consumes one response from the queue.
+ *
+ * The recorded `opts` is a shallow snapshot (with its own `headers`
+ * object) so later mutations of the live `opts` by `session.request()`
+ * — e.g. updating `Authorization` between the first 401 and the
+ * refresh retry — do not bleed into earlier recorded calls.
+ */
+function recordingFetch(responses) {
+  const calls = [];
+  const fn = async (url, opts = {}) => {
+    calls.push({ url, opts: { ...opts, headers: { ...opts.headers } } });
+    const next = responses.shift();
+    if (!next) throw new Error('No mock response for ' + url);
+    return next();
+  };
+  fn.calls = calls;
+  return fn;
+}
+
+test('refresh coverage: first request uses the original access token', async () => {
+  globalThis.fetch = recordingFetch([() => new Response('{}', { status: 200 })]);
+  const m = new Mendeley({ clientId: 'cid' });
+  const session = new MendeleySession(m, { access_token: 'orig_tok' });
+  await session.get('/foo');
+  assert.equal(globalThis.fetch.calls.length, 1);
+  assert.equal(globalThis.fetch.calls[0].opts.headers.authorization, 'Bearer orig_tok');
+});
+
+test('refresh coverage: a 401 triggers exactly one refresh when a refresher is present', async () => {
+  let refreshCount = 0;
+  globalThis.fetch = recordingFetch([
+    () => new Response('expired', { status: 401 }),
+    () => new Response('{}', { status: 200 }),
+  ]);
+  const m = new Mendeley({ clientId: 'cid' });
+  const refresher = {
+    async refresh(s) {
+      refreshCount += 1;
+      s.token = { access_token: 'refreshed_tok' };
+    },
+  };
+  const session = new MendeleySession(m, { access_token: 'orig_tok' }, null, refresher);
+  await session.get('/foo');
+  assert.equal(refreshCount, 1, 'refresher.refresh must be called exactly once');
+  assert.equal(globalThis.fetch.calls.length, 2, 'fetch must be called exactly twice');
+});
+
+test('refresh coverage: the retried request uses the refreshed access token', async () => {
+  globalThis.fetch = recordingFetch([
+    () => new Response('expired', { status: 401 }),
+    () => new Response('{}', { status: 200 }),
+  ]);
+  const m = new Mendeley({ clientId: 'cid' });
+  const refresher = {
+    async refresh(s) {
+      s.token = { access_token: 'refreshed_tok' };
+    },
+  };
+  const session = new MendeleySession(m, { access_token: 'orig_tok' }, null, refresher);
+  await session.get('/foo');
+  assert.equal(globalThis.fetch.calls[0].opts.headers.authorization, 'Bearer orig_tok');
+  assert.equal(globalThis.fetch.calls[1].opts.headers.authorization, 'Bearer refreshed_tok');
+});
+
+test('refresh coverage: a second 401 raises an API error instead of looping', async () => {
+  let refreshCount = 0;
+  globalThis.fetch = recordingFetch([
+    () => new Response('expired', { status: 401 }),
+    () => new Response('still expired', { status: 401 }),
+  ]);
+  const m = new Mendeley({ clientId: 'cid' });
+  const refresher = {
+    async refresh(s) {
+      refreshCount += 1;
+      s.token = { access_token: 'refreshed_tok' };
+    },
+  };
+  const session = new MendeleySession(m, { access_token: 'orig_tok' }, null, refresher);
+  await assert.rejects(() => session.get('/foo'), /401/);
+  assert.equal(refreshCount, 1, 'refresher is called once, not in a loop');
+  assert.equal(
+    globalThis.fetch.calls.length,
+    2,
+    'fetch is called exactly twice, then the session gives up',
+  );
+});
+
+test('refresh coverage: no refresh happens if there is no refresher', async () => {
+  globalThis.fetch = recordingFetch([() => new Response('expired', { status: 401 })]);
+  const m = new Mendeley({ clientId: 'cid' });
+  const session = new MendeleySession(m, { access_token: 'orig_tok' }); // no refresher
+  await assert.rejects(() => session.get('/foo'), /401/);
+  assert.equal(globalThis.fetch.calls.length, 1, 'no retry without a refresher');
+});
+
+test('refresh coverage: refresh failures propagate to the caller', async () => {
+  globalThis.fetch = recordingFetch([() => new Response('expired', { status: 401 })]);
+  const m = new Mendeley({ clientId: 'cid' });
+  const refresher = {
+    async refresh() {
+      throw new Error('refresh endpoint offline');
+    },
+  };
+  const session = new MendeleySession(m, { access_token: 'orig_tok' }, null, refresher);
+  await assert.rejects(() => session.get('/foo'), /refresh endpoint offline/);
+});
+
+test('refresh coverage: stream:true raises on a non-OK response (no refresh path runs)', async () => {
+  globalThis.fetch = recordingFetch([() => new Response('forbidden', { status: 403 })]);
+  const m = new Mendeley({ clientId: 'cid' });
+  const session = new MendeleySession(m, { access_token: 'tok' });
+  await assert.rejects(() => session.get('/foo', { stream: true }), /403/);
+  assert.equal(globalThis.fetch.calls.length, 1, 'stream:true does not retry a 403');
+});
+
+test('refresh coverage: stream:true with refresh — first 401 triggers refresh, retried 200 is returned', async () => {
+  globalThis.fetch = recordingFetch([
+    () => new Response('expired', { status: 401 }),
+    () => new Response(JSON.stringify({ ok: 1 }), { status: 200 }),
+  ]);
+  const m = new Mendeley({ clientId: 'cid' });
+  const refresher = {
+    async refresh(s) {
+      s.token = { access_token: 'refreshed_tok' };
+    },
+  };
+  const session = new MendeleySession(m, { access_token: 'orig_tok' }, null, refresher);
+  const rsp = await session.get('/foo', { stream: true });
+  assert.equal(rsp.status, 200);
+  assert.equal(globalThis.fetch.calls.length, 2);
+  // The retried response is returned to the caller untouched.
+  assert.deepEqual(await rsp.json(), { ok: 1 });
+});
+
+test('refresh coverage: stream:true with a non-OK response after refresh raises', async () => {
+  // The post-refresh retry is still 401. With stream:true, the !rsp.ok
+  // check at the end of the request method calls raiseApiError.
+  globalThis.fetch = recordingFetch([
+    () => new Response('expired', { status: 401 }),
+    () => new Response('still expired', { status: 401 }),
+  ]);
+  const m = new Mendeley({ clientId: 'cid' });
+  const refresher = {
+    async refresh(s) {
+      s.token = { access_token: 'refreshed_tok' };
+    },
+  };
+  const session = new MendeleySession(m, { access_token: 'orig_tok' }, null, refresher);
+  await assert.rejects(() => session.get('/foo', { stream: true }), /401/);
+});
