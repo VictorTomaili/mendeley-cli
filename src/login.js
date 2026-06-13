@@ -34,6 +34,9 @@ export function listenForCode(port = 0, expectedState) {
     capturedReject = rej;
   });
 
+  // Mutable state so we can set it after the server is already listening.
+  let _expectedState = expectedState;
+
   const server = createServer((req, res) => {
     try {
       const url = new URL(req.url, 'http://localhost');
@@ -51,7 +54,7 @@ export function listenForCode(port = 0, expectedState) {
       }
 
       if (code) {
-        if (expectedState && state !== expectedState) {
+        if (_expectedState && state !== _expectedState) {
           res.statusCode = 400;
           res.setHeader('content-type', 'text/html');
           res.end(errorPage('State mismatch (possible CSRF attack)'));
@@ -84,6 +87,8 @@ export function listenForCode(port = 0, expectedState) {
         port: server.address().port,
         captured,
         close: () => server.close(),
+        /** Set the expected state after the server has started. */
+        setState(state) { _expectedState = state; },
       });
     });
   });
