@@ -97,7 +97,7 @@ mendeley --skill > MENDELEY_SKILL.md   # if you have a global link
    `Changed: …`).
 5. Open a pull request using the
    [PR template](.github/PULL_REQUEST_TEMPLATE.md). The CI workflow will
-   run the full test matrix on Node 18, 20, and 22 across Linux, macOS,
+   run the full test matrix on Node 22 and 24 across Linux, macOS,
    and Windows.
 
 ## Commit messages
@@ -117,3 +117,33 @@ test: cover response lazy fields
 This project is licensed under the Apache License 2.0. By submitting a
 contribution, you agree to license it under the same terms — see
 [LICENSE](LICENSE) for the full text.
+
+## Repository protection
+
+The repository uses [GitHub Rulesets](https://docs.github.com/en/repositories/configuring-branches-and-merges-in-your-repository/managing-rulesets)
+for branch and tag protection. The ruleset definitions are
+version-controlled in [`.github/rulesets/`](.github/rulesets/):
+
+- `main-branch.json` — protects `main`: requires a PR with 1 approval,
+  requires the 6 CI jobs to pass, requires linear history, blocks
+  force-pushes and deletions. `@VictorTomaili` is on the bypass list.
+- `release-tags.json` — protects `v*` tags: blocks tag updates and
+  deletions. `@VictorTomaili` is on the bypass list.
+
+To re-apply the rules (e.g. on a fresh repo, or after a wipe):
+
+```bash
+gh api --method POST \
+  -H "Accept: application/vnd.github+json" \
+  repos/VictorTomaili/mendeley-cli/rulesets \
+  --input .github/rulesets/main-branch.json
+
+gh api --method POST \
+  -H "Accept: application/vnd.github+json" \
+  repos/VictorTomaili/mendeley-cli/rulesets \
+  --input .github/rulesets/release-tags.json
+```
+
+Both rulesets are bypassed for `@VictorTomaili`, so as the maintainer
+you can still push directly to `main` and re-tag releases when needed.
+Other contributors go through the normal PR + CI flow.
