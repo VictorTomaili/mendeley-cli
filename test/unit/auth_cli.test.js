@@ -85,6 +85,40 @@ test('auth login saves tokens without printing bearer material', async () => {
   assert.equal(saved.refresh_token, REFRESH_TOKEN);
 });
 
+test('auth login prints ordered browser-handoff instructions (#53)', async () => {
+  const { server, host } = await startAuthServer();
+  servers.push(server);
+  const { env } = createAuthEnv(host);
+
+  const result = await runCli(['auth', 'login'], {
+    env,
+    input: 'AUTH_CODE\n',
+  });
+
+  assert.equal(result.code, 0, result.stderr || result.stdout);
+
+  // Numbered, ordered steps.
+  assert.match(result.stdout, /Step 1/);
+  assert.match(result.stdout, /Step 2/);
+  assert.match(result.stdout, /Step 3/);
+  assert.match(result.stdout, /Step 4/);
+
+  // The authorisation URL is present and visually distinct (indented
+  // under Step 1). We just check it's there.
+  assert.match(result.stdout, /oauth\/authorize/);
+
+  // The prompt explicitly asks for the full redirect URL and shows
+  // the expected localhost host.
+  assert.match(result.stdout, /Redirect URL \(http:\/\/localhost:11595/);
+
+  // The copy does NOT imply the CLI opens a browser or runs a
+  // callback server — instead it explicitly says it does not.
+  assert.match(result.stdout, /does not run a callback server/);
+  assert.match(result.stdout, /browser redirects to a/);
+  // Mentions that the localhost error page is normal.
+  assert.match(result.stdout, /normal/);
+});
+
 test('auth login rejects a redirect URL whose state does not match the saved state', async () => {
   const { server, host } = await startAuthServer();
   servers.push(server);

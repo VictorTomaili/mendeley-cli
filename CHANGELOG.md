@@ -7,6 +7,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.1] - 2026-06-13
+
+### Changed
+
+- `auth login` now prints clear, ordered browser-handoff
+  instructions (#53). The terminal output walks the user through the
+  four-step copy/paste round-trip: (1) open the authorisation URL,
+  (2) complete the Mendeley login, (3) copy the full redirect URL
+  from the browser address bar, (4) paste it at the prompt. The URL
+  is visually distinct, the prompt explicitly asks for the full
+  `http://localhost:…` redirect URL, and the copy clarifies that the
+  CLI does not run a local callback server (the "This site can't be
+  reached" page is normal). The `auth login` help text and the
+  README were updated to match.
+
 ## [0.1.0] - 2026-06-13
 
 ### Security
@@ -111,6 +126,7 @@ remove-document` now uses the matching `FolderDocuments.remove()`
   browser-based auth.
 - Node.js 18+ support (ESM only).
 
-[Unreleased]: https://github.com/VictorTomaili/mendeley-cli/compare/v0.1.0...HEAD
+[Unreleased]: https://github.com/VictorTomaili/mendeley-cli/compare/v0.1.1...HEAD
+[0.1.1]: https://github.com/VictorTomaili/mendeley-cli/releases/tag/v0.1.1
 [0.1.0]: https://github.com/VictorTomaili/mendeley-cli/releases/tag/v0.1.0
 [1.0.0]: https://github.com/VictorTomaili/mendeley-cli/releases/tag/v1.0.0

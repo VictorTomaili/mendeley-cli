@@ -51,14 +51,17 @@ mendeley auth set redirectUri http://localhost:11595
 
 ### Authenticate
 
-The CLI does **not** open a browser. It prints the authorisation URL and
-prompts you to paste the redirect URL back after logging in:
+The CLI does **not** open a browser or run a local callback server. It prints
+the authorisation URL and prompts you to paste the redirect URL back after
+logging in:
 
 ```bash
 mendeley auth login
-# 1. Open the printed URL in a browser and log in
-# 2. Copy the full redirect URL from the browser address bar
-# 3. Paste it at the prompt
+# 1. Open the printed URL in a browser and complete the Mendeley login
+# 2. After approving, the browser redirects to http://localhost:…
+#    ("This site can't be reached" is normal — the CLI isn't listening)
+# 3. Copy the ENTIRE URL from the browser address bar
+# 4. Paste it at the prompt
 ```
 
 For headless servers / CI / AI agents, use the two-step flow instead:
