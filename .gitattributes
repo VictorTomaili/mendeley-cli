@@ -1,0 +1,44 @@
+# Git attributes: https://git-scm.com/docs/gitattributes
+# Auto-detect text files, enforce LF line endings, and exclude
+# non-publishable files from npm tarballs.
+
+# Normalize line endings for text files.
+*               text=auto eol=lf
+
+# Explicit binary types.
+*.png           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.ico           binary
+*.pdf           binary
+*.zip           binary
+*.gz            binary
+*.tar           binary
+*.woff          binary
+*.woff2         binary
+
+# Shell scripts: enforce LF even on Windows checkouts.
+*.sh            text eol=lf
+
+# Markdown: always LF, keep trailing whitespace (for hard line breaks).
+*.md            text eol=lf -whitespace
+
+# Exclude files from the npm tarball (in addition to .npmignore and the
+# `files` field in package.json). Paths are relative to the package root.
+/.github        export-ignore
+/.gitattributes export-ignore
+/.gitignore     export-ignore
+/.editorconfig  export-ignore
+/.prettierrc.json export-ignore
+/.prettierignore  export-ignore
+/.env.test      export-ignore
+/.vscode        export-ignore
+/.idea          export-ignore
+/test           export-ignore
+/coverage       export-ignore
+CHANGELOG.md    export-ignore
+CODE_OF_CONDUCT.md export-ignore
+CONTRIBUTING.md export-ignore
+SECURITY.md     export-ignore
+AUTHORS         export-ignore
