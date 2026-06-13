@@ -14,6 +14,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - `auth url` no longer prints the PKCE `code_verifier` in stdout. The
   verifier is still saved to `~/.mendeley/pending_auth.json` for the
   subsequent `auth exchange` step.
+- OAuth `state` is now validated against the expected value before the
+  token exchange, in both the **authorization-code** flow
+  (`AuthorizationCodeAuthenticator.authenticate`) and the **implicit
+  grant** flow (`ImplicitGrantAuthenticator.authenticate`). A mismatch
+  throws before any token request is made. Passing a bare authorization
+  code (no URL) still works and is the documented escape hatch for
+  headless / advanced usage.
 
 ### Changed
 

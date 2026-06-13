@@ -6,6 +6,8 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import {
+  AuthorizationCodeAuthenticator,
+  ImplicitGrantAuthenticator,
   buildAuthorizationUrl,
   deriveCodeChallenge,
   generateCodeVerifier,
@@ -165,4 +167,89 @@ test('refreshToken posts a refresh_token grant', async () => {
   } finally {
     globalThis.fetch = originalFetch;
   }
+});
+
+/* ── OAuth state validation ───────────────────────────────────────── */
+
+function makeMendeley() {
+  // Minimal stub: the authenticators only read host/clientId/clientSecret
+  // and don't call any methods on the Mendeley instance.
+  return {
+    host: 'https://example.com',
+    clientId: 'cid',
+    clientSecret: 'secret',
+    redirectUri: 'https://example.com/cb',
+  };
+}
+
+test('AuthorizationCodeAuthenticator validates state from a full redirect URL', async () => {
+  const auth = new AuthorizationCodeAuthenticator(makeMendeley(), 'EXPECTED_STATE');
+  const originalFetch = globalThis.fetch;
+  let fetched = false;
+  globalThis.fetch = async () => {
+    fetched = true;
+    return new Response(JSON.stringify({ access_token: 'tok' }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  };
+  try {
+    const url = 'https://example.com/cb?code=the_code&state=EXPECTED_STATE';
+    const session = await auth.authenticate(url);
+    assert.ok(session);
+    assert.equal(fetched, true, 'token request should fire on state match');
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('AuthorizationCodeAuthenticator rejects state mismatch before any token request', async () => {
+  const auth = new AuthorizationCodeAuthenticator(makeMendeley(), 'EXPECTED_STATE');
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () => {
+    throw new Error('fetch must not be called on state mismatch');
+  };
+  try {
+    const url = 'https://example.com/cb?code=the_code&state=ATTACKER_STATE';
+    await assert.rejects(() => auth.authenticate(url), /OAuth state mismatch/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('AuthorizationCodeAuthenticator accepts a bare code as the documented escape hatch', async () => {
+  const auth = new AuthorizationCodeAuthenticator(makeMendeley(), 'EXPECTED_STATE');
+  const originalFetch = globalThis.fetch;
+  globalThis.fetch = async () =>
+    new Response(JSON.stringify({ access_token: 'tok' }), {
+      status: 200,
+      headers: { 'content-type': 'application/json' },
+    });
+  try {
+    const session = await auth.authenticate('BARE_CODE_VALUE');
+    assert.ok(session);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
+});
+
+test('ImplicitGrantAuthenticator validates state from the redirect fragment', async () => {
+  const auth = new ImplicitGrantAuthenticator(makeMendeley(), 'EXPECTED_STATE');
+  const url = 'https://example.com/cb#access_token=tok&state=EXPECTED_STATE&token_type=bearer';
+  const session = await auth.authenticate(url);
+  assert.equal(session.token.access_token, 'tok');
+  assert.equal(session.token.state, 'EXPECTED_STATE');
+});
+
+test('ImplicitGrantAuthenticator rejects state mismatch', async () => {
+  const auth = new ImplicitGrantAuthenticator(makeMendeley(), 'EXPECTED_STATE');
+  const url = 'https://example.com/cb#access_token=tok&state=ATTACKER_STATE';
+  await assert.rejects(() => auth.authenticate(url), /OAuth state mismatch/);
+});
+
+test('ImplicitGrantAuthenticator accepts a redirect with no state (legacy behavior)', async () => {
+  const auth = new ImplicitGrantAuthenticator(makeMendeley(), 'EXPECTED_STATE');
+  const url = 'https://example.com/cb#access_token=tok';
+  const session = await auth.authenticate(url);
+  assert.equal(session.token.access_token, 'tok');
 });

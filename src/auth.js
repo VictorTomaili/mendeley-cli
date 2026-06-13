@@ -314,9 +314,18 @@ export class AuthorizationCodeAuthenticator {
   /**
    * Exchange the authorization `code` (or the full redirect URL containing
    * it) for an access token and return a session.
+   *
+   * If a full redirect URL is provided, the `state` parameter is parsed
+   * and compared against the expected state. A mismatch throws before any
+   * token request is made. Passing a bare authorization code (no URL)
+   * skips state validation — this is the documented escape hatch for
+   * headless / advanced usage where the caller is certain of the code's
+   * origin.
    */
   async authenticate(codeOrUrl) {
     const code = extractCode(codeOrUrl);
+    const redirectState = parseRedirectState(codeOrUrl);
+    assertStateMatches(this.state, redirectState, 'authorization-code');
     const token = await fetchAuthorizationCodeToken({
       tokenUrl: this.tokenUrl,
       code,
@@ -355,7 +364,15 @@ export class ImplicitGrantAuthenticator {
     return url.toString();
   }
 
-  /** Parse the access token from a redirect URL fragment. */
+  /**
+   * Parse the access token from a redirect URL fragment.
+   *
+   * If the fragment carries a `state` parameter, it is compared against
+   * the expected state. A mismatch throws before the session is
+   * constructed. The legacy implicit flow did not always include state;
+   * for backward compatibility, a missing or empty `state` on the
+   * redirect is accepted without comparison.
+   */
   async authenticate(redirectUrl) {
     const fragment = redirectUrl.split('#')[1] || '';
     const params = new URLSearchParams(fragment);
@@ -363,11 +380,13 @@ export class ImplicitGrantAuthenticator {
     if (!accessToken) {
       throw new Error('No access_token found in redirect URL fragment');
     }
+    const redirectState = params.get('state');
+    assertStateMatches(this.state, redirectState, 'implicit-grant');
     const token = {
       access_token: accessToken,
       token_type: params.get('token_type') || 'bearer',
       expires_in: parseInt(params.get('expires_in') || '3600', 10),
-      state: params.get('state'),
+      state: redirectState,
     };
     return new MendeleySession(this.mendeley, token);
   }
@@ -385,6 +404,46 @@ function extractCode(codeOrUrl) {
     }
   }
   return codeOrUrl;
+}
+
+/**
+ * Parse a redirect URL and return the OAuth `state` value from the query
+ * string (auth-code flow) or fragment (implicit flow). Returns null if
+ * the input is not a URL, can't be parsed, or carries no state.
+ */
+function parseRedirectState(redirectUrl) {
+  if (!redirectUrl) return null;
+  if (!redirectUrl.includes('?') && !redirectUrl.includes('#')) return null;
+  let u;
+  try {
+    u = new URL(redirectUrl);
+  } catch {
+    return null;
+  }
+  const queryState = u.searchParams.get('state');
+  if (queryState) return queryState;
+  const fragment = u.hash ? u.hash.slice(1) : '';
+  if (!fragment) return null;
+  return new URLSearchParams(fragment).get('state');
+}
+
+/**
+ * Validate the state from a redirect against the expected state.
+ *
+ * - If both are present and differ, throws an `Error` whose message
+ *   identifies the flow and the cause.
+ * - If either side is missing / empty, the check is skipped silently so
+ *   that bare-code (advanced) and legacy implicit redirects still work.
+ */
+function assertStateMatches(expected, actual, flow) {
+  if (!expected || !actual) return;
+  if (expected !== actual) {
+    throw new Error(
+      `OAuth state mismatch in ${flow} flow: this may indicate a CSRF ` +
+        `attack, a stale session, or a typo in the redirect URL. ` +
+        `Start a new auth flow and try again.`,
+    );
+  }
 }
 
 class ClientCredentialsTokenRefresher {

@@ -60,9 +60,12 @@ test('auth login saves tokens without printing bearer material', async () => {
   servers.push(server);
   const { env, tokenFile } = createAuthEnv(host);
 
+  // Bare code (no URL state) — this test is about token redaction, not
+  // state validation. See the dedicated state-mismatch tests for the
+  // state-validation behavior.
   const result = await runCli(['auth', 'login'], {
     env,
-    input: 'http://localhost:11595/?code=AUTH_CODE&state=EXPECTED_STATE\n',
+    input: 'AUTH_CODE\n',
   });
 
   assert.equal(result.code, 0, result.stderr || result.stdout);
@@ -80,6 +83,84 @@ test('auth login saves tokens without printing bearer material', async () => {
   const saved = JSON.parse(readFileSync(tokenFile, 'utf8'));
   assert.equal(saved.access_token, ACCESS_TOKEN);
   assert.equal(saved.refresh_token, REFRESH_TOKEN);
+});
+
+test('auth login rejects a redirect URL whose state does not match the saved state', async () => {
+  const { server, host } = await startAuthServer();
+  servers.push(server);
+  const { env, tokenFile } = createAuthEnv(host);
+
+  const result = await runCli(['auth', 'login'], {
+    env,
+    // Pasting a redirect with a state that doesn't match the one the
+    // CLI just generated. The token server should never be hit.
+    input: 'http://localhost:11595/?code=AUTH_CODE&state=ATTACKER_STATE\n',
+  });
+
+  assert.notEqual(result.code, 0, 'CLI should fail on state mismatch');
+  assert.match(result.stdout + result.stderr, /OAuth state mismatch/);
+
+  // No token file should be written on mismatch.
+  try {
+    readFileSync(tokenFile, 'utf8');
+    assert.fail('token file should not exist after a state-mismatch failure');
+  } catch (err) {
+    assert.match(err.code, /ENOENT/);
+  }
+});
+
+test('auth exchange rejects a redirect URL whose state does not match pending state', async () => {
+  const { server, host } = await startAuthServer();
+  servers.push(server);
+  const { env, home, tokenFile } = createAuthEnv(host);
+  const pendingDir = join(home, '.mendeley');
+  mkdirSync(pendingDir, { recursive: true });
+  writeFileSync(
+    join(pendingDir, 'pending_auth.json'),
+    JSON.stringify({
+      code_verifier: 'A'.repeat(64),
+      state: 'EXPECTED_STATE',
+      redirect_uri: 'http://localhost:11595',
+      created_at: new Date().toISOString(),
+    }),
+  );
+
+  const result = await runCli(
+    ['auth', 'exchange', 'http://localhost:11595/?code=AUTH_CODE&state=ATTACKER_STATE'],
+    { env },
+  );
+
+  assert.notEqual(result.code, 0, 'CLI should fail on state mismatch');
+  assert.match(result.stdout + result.stderr, /OAuth state mismatch/);
+  try {
+    readFileSync(tokenFile, 'utf8');
+    assert.fail('token file should not exist after a state-mismatch failure');
+  } catch (err) {
+    assert.match(err.code, /ENOENT/);
+  }
+});
+
+test('auth exchange accepts a bare code (documented escape hatch) when pending state exists', async () => {
+  const { server, host } = await startAuthServer();
+  servers.push(server);
+  const { env, home, tokenFile } = createAuthEnv(host);
+  const pendingDir = join(home, '.mendeley');
+  mkdirSync(pendingDir, { recursive: true });
+  writeFileSync(
+    join(pendingDir, 'pending_auth.json'),
+    JSON.stringify({
+      code_verifier: 'A'.repeat(64),
+      state: 'EXPECTED_STATE',
+      redirect_uri: 'http://localhost:11595',
+      created_at: new Date().toISOString(),
+    }),
+  );
+
+  const result = await runCli(['auth', 'exchange', 'BARE_CODE_VALUE'], { env });
+
+  assert.equal(result.code, 0, result.stderr || result.stdout);
+  const saved = JSON.parse(readFileSync(tokenFile, 'utf8'));
+  assert.equal(saved.access_token, ACCESS_TOKEN);
 });
 
 test('auth url saves PKCE verifier to disk without printing it', async () => {
