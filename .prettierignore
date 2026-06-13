@@ -1,0 +1,31 @@
+# Build artefacts
+node_modules/
+coverage/
+dist/
+build/
+
+# Lock files (managed by npm)
+package-lock.json
+
+# Generated / minified
+*.min.js
+*.min.css
+*.bundle.js
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment
+.env
+.env.*
+!.env.test
+
+# OS / editor
+.DS_Store
+.vscode/
+.idea/
+
+# Vendored third-party assets (none today; uncomment if added)
+# vendor/
+# third_party/

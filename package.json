@@ -22,7 +22,9 @@
     "test": "node --test test/unit/*.test.js test/integration/*.test.js",
     "test:unit": "node --test test/unit/*.test.js",
     "test:integration": "node --test test/integration/*.test.js",
-    "cli": "node bin/mendeley.js"
+    "cli": "node bin/mendeley.js",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "engines": {
     "node": ">=18.0.0"
@@ -43,6 +45,9 @@
   "author": "Victor Tomaili <victor@tomaili.com>",
   "publishConfig": {
     "registry": "https://registry.npmjs.org"
+  },
+  "devDependencies": {
+    "prettier": "^3.0.0"
   },
   "optionalDependencies": {
     "open": "^10.1.0"
