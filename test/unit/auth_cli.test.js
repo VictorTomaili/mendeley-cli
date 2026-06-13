@@ -82,6 +82,36 @@ test('auth login saves tokens without printing bearer material', async () => {
   assert.equal(saved.refresh_token, REFRESH_TOKEN);
 });
 
+test('auth url saves PKCE verifier to disk without printing it', async () => {
+  // No OAuth server needed: `auth url` only generates a verifier + state
+  // locally and never hits the network.
+  const { env, home } = createAuthEnv('http://api.test.invalid');
+
+  const result = await runCli(['auth', 'url'], { env });
+
+  assert.equal(result.code, 0, result.stderr || result.stdout);
+  // The verifier (a 43-128 char string) must not appear anywhere in stdout.
+  assert.doesNotMatch(result.stdout, /code_verifier/);
+
+  const output = JSON.parse(result.stdout);
+  assert.equal(typeof output.login_url, 'string');
+  assert.ok(output.login_url.includes('oauth/authorize'));
+  assert.equal(typeof output.state, 'string');
+  assert.equal(output.code_verifier, undefined);
+
+  // The verifier must still be saved on disk for the subsequent
+  // `auth exchange` step.
+  const pendingPath = join(home, '.mendeley', 'pending_auth.json');
+  const saved = JSON.parse(readFileSync(pendingPath, 'utf8'));
+  assert.equal(typeof saved.code_verifier, 'string');
+  assert.ok(
+    saved.code_verifier.length >= 43 && saved.code_verifier.length <= 128,
+    `PKCE verifier length out of spec: ${saved.code_verifier.length}`,
+  );
+  assert.equal(saved.state, output.state);
+  assert.equal(saved.redirect_uri, 'http://localhost:11595');
+});
+
 function createAuthEnv(host) {
   const root = mkdtempSync(join(tmpdir(), 'mendeley-auth-cli-'));
   const home = join(root, 'home');

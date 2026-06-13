@@ -11,6 +11,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `auth login` and `auth exchange` no longer print access or refresh tokens
   after saving them to the token file.
+- `auth url` no longer prints the PKCE `code_verifier` in stdout. The
+  verifier is still saved to `~/.mendeley/pending_auth.json` for the
+  subsequent `auth exchange` step.
 
 ### Changed
 
