@@ -65,6 +65,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   inside the destination directory. The CLI's `files download`
   `--filename` flag is now actually honoured (the previous
   implementation silently ignored it).
+- `folders add-document` no longer fails with `415 Unsupported Media
+Type`. The CLI was sending a fabricated
+  `Content-Type: application/vnd.mendeley-folder-document.1+json`
+  that the Mendeley API doesn't recognise. It now uses the correct
+  `application/vnd.mendeley-document.1+json` type via the new
+  `FolderDocuments.add()` SDK method. `library add-by-doi` and
+  `library add-by-arxiv` (both used the same fabricated type when a
+  `--folder` was specified) are also fixed. `folders
+remove-document` now uses the matching `FolderDocuments.remove()`
+  SDK method.
+- `trash empty --yes` no longer returns `400 Invalid view`. The
+  command iterated the trash with `view: 'core'`, which is not a
+  valid view on the trash endpoint. It now requests the default
+  view (no `view` parameter), which is sufficient since only the
+  document ids are needed to delete each item.
 
 ### Changed
 
