@@ -194,6 +194,6 @@ async function raiseApiError(rsp) {
     }
   }
   throw new MendeleyException(
-    `The Mendeley API returned an error (status: ${rsp.status}, message: ${message})`
+    `The Mendeley API returned an error (status: ${rsp.status}, message: ${message})`,
   );
 }

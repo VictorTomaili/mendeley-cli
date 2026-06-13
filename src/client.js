@@ -63,10 +63,7 @@ export class Mendeley {
    * @param {string} [state] - CSRF state value
    */
   startAuthorizationCodeFlow(state) {
-    return new AuthorizationCodeAuthenticator(
-      this,
-      state || this.stateGenerator.generateState()
-    );
+    return new AuthorizationCodeAuthenticator(this, state || this.stateGenerator.generateState());
   }
 
   /**

@@ -20,14 +20,16 @@ function makeFakeSession(responses) {
       this.calls.push({ method: 'GET', url, opts });
       if (this.responses.length === 0) {
         return {
-          ok: false, status: 500,
+          ok: false,
+          status: 500,
           json: async () => ({ message: 'out of responses' }),
         };
       }
       const body = this.responses.shift();
       return {
-        ok: true, status: 200,
-        headers: { get: (k) => k === 'content-type' ? 'application/json' : null },
+        ok: true,
+        status: 200,
+        headers: { get: (k) => (k === 'content-type' ? 'application/json' : null) },
         json: async () => body,
       };
     },

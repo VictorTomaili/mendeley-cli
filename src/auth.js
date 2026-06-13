@@ -38,7 +38,7 @@ async function normaliseTokenResponse(rsp) {
     {
       status: rsp.status,
       headers: { 'content-type': 'application/json' },
-    }
+    },
   );
 }
 
@@ -113,7 +113,8 @@ export async function fetchAuthorizationCodeToken({
     accept: 'application/json',
   };
   if (clientSecret) {
-    headers.authorization = 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+    headers.authorization =
+      'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
   }
 
   const rsp = await fetch(tokenUrl, { method: 'POST', headers, body });
@@ -147,7 +148,8 @@ export async function refreshToken({ tokenUrl, refreshToken, clientId, clientSec
     accept: 'application/json',
   };
   if (clientSecret) {
-    headers.authorization = 'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
+    headers.authorization =
+      'Basic ' + Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
   }
 
   const rsp = await fetch(tokenUrl, { method: 'POST', headers, body });
@@ -269,7 +271,12 @@ export class ClientCredentialsAuthenticator {
       clientId: this.mendeley.clientId,
       clientSecret: this.mendeley.clientSecret,
     });
-    return new MendeleySession(this.mendeley, token, null, new ClientCredentialsTokenRefresher(this));
+    return new MendeleySession(
+      this.mendeley,
+      token,
+      null,
+      new ClientCredentialsTokenRefresher(this),
+    );
   }
 }
 
@@ -322,7 +329,7 @@ export class AuthorizationCodeAuthenticator {
       this.mendeley,
       token,
       null,
-      new AuthorizationCodeTokenRefresher(this)
+      new AuthorizationCodeTokenRefresher(this),
     );
   }
 }

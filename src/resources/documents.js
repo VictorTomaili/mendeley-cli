@@ -26,12 +26,14 @@ export class Documents extends DocumentsBase {
   }
 
   viewType(view) {
-    return {
-      all: UserAllDocument,
-      bib: UserBibDocument,
-      client: UserClientDocument,
-      tags: UserTagsDocument,
-    }[view] || UserDocument;
+    return (
+      {
+        all: UserAllDocument,
+        bib: UserBibDocument,
+        client: UserClientDocument,
+        tags: UserTagsDocument,
+      }[view] || UserDocument
+    );
   }
 
   async create({ title, type, ...kwargs }) {
@@ -98,11 +100,13 @@ export class DocumentsSearch extends ListResource {
     return addQueryParams('/search/documents', this.params);
   }
   _objType(kwargs = {}) {
-    return {
-      all: UserAllDocument,
-      bib: UserBibDocument,
-      client: UserClientDocument,
-      tags: UserTagsDocument,
-    }[this.params.view] || UserDocument;
+    return (
+      {
+        all: UserAllDocument,
+        bib: UserBibDocument,
+        client: UserClientDocument,
+        tags: UserTagsDocument,
+      }[this.params.view] || UserDocument
+    );
   }
 }

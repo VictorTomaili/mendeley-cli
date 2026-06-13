@@ -15,7 +15,16 @@ export class Folder extends SessionResponseObject {
   }
 
   static fields() {
-    return ['id', 'name', 'parent_id', 'group_id', 'profile_id', 'created', 'last_modified', 'document_count'];
+    return [
+      'id',
+      'name',
+      'parent_id',
+      'group_id',
+      'profile_id',
+      'created',
+      'last_modified',
+      'document_count',
+    ];
   }
 
   get created() {

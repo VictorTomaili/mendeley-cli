@@ -70,10 +70,12 @@ export function listenForCode(port = 0, expectedState) {
         if (_expectedState && state !== _expectedState) {
           res.statusCode = 400;
           res.setHeader('content-type', 'text/html');
-          res.end(errorPage(
-            `State mismatch. Expected: ${_expectedState}, got: ${state || '(none)'}. ` +
-            'This may mean you visited an old login URL. Please run `mendeley auth login` again.'
-          ));
+          res.end(
+            errorPage(
+              `State mismatch. Expected: ${_expectedState}, got: ${state || '(none)'}. ` +
+                'This may mean you visited an old login URL. Please run `mendeley auth login` again.',
+            ),
+          );
           capturedReject(new Error('OAuth state mismatch'));
           server.close();
           return;
@@ -105,7 +107,9 @@ export function listenForCode(port = 0, expectedState) {
         captured,
         close: () => server.close(),
         /** Set the expected state after the server has started. */
-        setState(state) { _expectedState = state; },
+        setState(state) {
+          _expectedState = state;
+        },
       });
     });
   });

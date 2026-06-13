@@ -39,10 +39,13 @@ describe('loadCredentials', () => {
     const cfgPath = join(tmp, 'a', 'credentials.json');
     const tokPath = join(tmp, 'a', 'token.json');
     writeFileSync(cfgPath, JSON.stringify({ clientId: '12345' }));
-    writeFileSync(tokPath, JSON.stringify({
-      access_token: 'AT_FROM_FILE',
-      refresh_token: 'RT_FROM_FILE',
-    }));
+    writeFileSync(
+      tokPath,
+      JSON.stringify({
+        access_token: 'AT_FROM_FILE',
+        refresh_token: 'RT_FROM_FILE',
+      }),
+    );
     process.env.MENDELEY_CONFIG = cfgPath;
     process.env.MENDELEY_TOKEN_FILE = tokPath;
     // Wipe env-var overrides so we know the values came from the files.
@@ -60,10 +63,13 @@ describe('loadCredentials', () => {
     const cfgPath = join(tmp, 'b', 'credentials.json');
     const tokPath = join(tmp, 'b', 'token.json');
     writeFileSync(cfgPath, JSON.stringify({ clientId: '999' }));
-    writeFileSync(tokPath, JSON.stringify({
-      access_token: 'AT_FILE',
-      refresh_token: 'RT_FILE',
-    }));
+    writeFileSync(
+      tokPath,
+      JSON.stringify({
+        access_token: 'AT_FILE',
+        refresh_token: 'RT_FILE',
+      }),
+    );
     process.env.MENDELEY_CONFIG = cfgPath;
     process.env.MENDELEY_TOKEN_FILE = tokPath;
     process.env.MENDELEY_ACCESS_TOKEN = 'AT_ENV';
@@ -78,11 +84,14 @@ describe('loadCredentials', () => {
     mkdirSync(join(tmp, 'c'), { recursive: true });
     const cfgPath = join(tmp, 'c', 'credentials.json');
     const tokPath = join(tmp, 'c', 'token.json');
-    writeFileSync(cfgPath, JSON.stringify({
-      clientId: '555',
-      accessToken: 'AT_CFG',
-      refreshToken: 'RT_CFG',
-    }));
+    writeFileSync(
+      cfgPath,
+      JSON.stringify({
+        clientId: '555',
+        accessToken: 'AT_CFG',
+        refreshToken: 'RT_CFG',
+      }),
+    );
     process.env.MENDELEY_CONFIG = cfgPath;
     process.env.MENDELEY_TOKEN_FILE = tokPath;
     delete process.env.MENDELEY_ACCESS_TOKEN;

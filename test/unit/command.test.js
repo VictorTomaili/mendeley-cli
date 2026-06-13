@@ -51,11 +51,9 @@ describe('Command', () => {
     const root = new Command('test');
     root.isRoot = true;
     let received;
-    root
-      .command('greet <name>')
-      .action((args, flags, out) => {
-        received = { args, flags, hasOut: out && typeof out.write === 'function' };
-      });
+    root.command('greet <name>').action((args, flags, out) => {
+      received = { args, flags, hasOut: out && typeof out.write === 'function' };
+    });
     const out = new Output('json');
     await root.parseAndRun(['greet', 'world'], out);
     assert.deepEqual(received.args, ['world']);
@@ -68,11 +66,9 @@ describe('Command', () => {
     root.isRoot = true;
     let received;
     const auth = root.command('auth');
-    auth
-      .command('login')
-      .action((args, flags, out) => {
-        received = 'login';
-      });
+    auth.command('login').action((args, flags, out) => {
+      received = 'login';
+    });
     const out = new Output('json');
     await root.parseAndRun(['auth', 'login'], out);
     assert.equal(received, 'login');
@@ -111,9 +107,7 @@ describe('Command', () => {
   it('shows help for the deepest matched command with --help', async () => {
     const root = new Command('test');
     root.isRoot = true;
-    root
-      .command('greet')
-      .description('say hello');
+    root.command('greet').description('say hello');
     let stdout = '';
     const orig = process.stdout.write.bind(process.stdout);
     process.stdout.write = (s) => {

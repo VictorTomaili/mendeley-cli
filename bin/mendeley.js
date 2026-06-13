@@ -56,9 +56,11 @@ authCmd.register(root);
 const whoami = root
   .command('whoami')
   .description('alias for `auth whoami` — confirm the saved token works')
-  .longDescription(`Short alias for \`mendeley auth whoami\`.  Calls
+  .longDescription(
+    `Short alias for \`mendeley auth whoami\`.  Calls
   /profiles/me with the saved access token; non-zero exit if the
-  token is missing or invalid.`)
+  token is missing or invalid.`,
+  )
   .example('mendeley whoami');
 whoami.action(async (_args, _flags, out) => {
   const { buildSession } = await import('../lib/cli/credentials.js');
@@ -130,12 +132,20 @@ function renderSkill(root) {
   const lines = [];
   lines.push(`# mendeley CLI — Skill Reference`);
   lines.push('');
-  lines.push(`You can manage a Mendeley library by running shell commands that start with \`mendeley\`.`);
-  lines.push(`The default output format is JSON.  Use \`--format text|tsv|ids\` for human-readable output.`);
-  lines.push(`Every command supports \`--help\` for detailed usage and \`--skill\` (on the root) for the full reference.`);
+  lines.push(
+    `You can manage a Mendeley library by running shell commands that start with \`mendeley\`.`,
+  );
+  lines.push(
+    `The default output format is JSON.  Use \`--format text|tsv|ids\` for human-readable output.`,
+  );
+  lines.push(
+    `Every command supports \`--help\` for detailed usage and \`--skill\` (on the root) for the full reference.`,
+  );
   lines.push('');
   lines.push(`## Global options`);
-  for (const opt of root.options.filter((o) => o.name !== 'help' && o.name !== 'version' && o.name !== 'skill')) {
+  for (const opt of root.options.filter(
+    (o) => o.name !== 'help' && o.name !== 'version' && o.name !== 'skill',
+  )) {
     lines.push(`  --${opt.name}${opt.arg ? ` <${opt.arg}>` : ''}  ${opt.description}`);
   }
   lines.push('');
@@ -152,7 +162,9 @@ function renderSkill(root) {
   lines.push('');
   lines.push(`## Authentication`);
   lines.push(`  1. Configure credentials once:  mendeley auth set clientId <id>`);
-  lines.push(`  2. ` + '`mendeley auth login` — prints a URL, you visit it, paste the redirect URL back.');
+  lines.push(
+    `  2. ` + '`mendeley auth login` — prints a URL, you visit it, paste the redirect URL back.',
+  );
   lines.push(`     No browser is opened, no callback server is started.`);
   lines.push(`  3. Verify with ` + '`mendeley whoami`');
   lines.push(`  4. Subsequent calls auto-refresh the token from ` + '`~/.mendeley/token.json`');
@@ -161,7 +173,9 @@ function renderSkill(root) {
   lines.push('  • `mendeley whoami` — confirm the token is valid');
   lines.push('  • `mendeley documents list --limit 10` — list recent documents');
   lines.push('  • `mendeley documents get <id>` — fetch full metadata for one document');
-  lines.push('  • `mendeley catalog search "machine learning" --limit 5` — search the global catalog');
+  lines.push(
+    '  • `mendeley catalog search "machine learning" --limit 5` — search the global catalog',
+  );
   lines.push('  • `mendeley folders list` — list folders in the library');
   lines.push('  • `mendeley library add-by-doi 10.1038/nature12373` — add a paper by DOI');
   lines.push('  • `mendeley library dedupe --by doi` — find duplicate documents');
@@ -180,7 +194,9 @@ function renderSkill(root) {
 function renderCommandNode(node, lines, indent) {
   lines.push(`${indent}\`${node._qualifiedName()}\` — ${node._description || ''}`);
   for (const arg of node.positional) {
-    lines.push(`${indent}  • <${arg.name}>  ${arg.description}${arg.required ? ' (required)' : ''}`);
+    lines.push(
+      `${indent}  • <${arg.name}>  ${arg.description}${arg.required ? ' (required)' : ''}`,
+    );
   }
   for (const opt of node.options) {
     if (opt.name === 'help' || opt.name === 'version' || opt.name === 'skill') continue;

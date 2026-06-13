@@ -10,7 +10,10 @@ import { guessMime } from '../../src/mime.js';
 test('guessMime recognises common academic formats', () => {
   assert.equal(guessMime('paper.pdf'), 'application/pdf');
   assert.equal(guessMime('paper.PDF'), 'application/pdf');
-  assert.equal(guessMime('chapter.docx'), 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  assert.equal(
+    guessMime('chapter.docx'),
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  );
   assert.equal(guessMime('ref.bib'), 'application/x-bibtex');
   assert.equal(guessMime('notes.tex'), 'application/x-tex');
 });

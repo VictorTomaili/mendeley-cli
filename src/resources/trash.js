@@ -19,11 +19,13 @@ export class Trash extends DocumentsBase {
     return '/trash';
   }
   viewType(view) {
-    return {
-      all: TrashAllDocument,
-      bib: TrashBibDocument,
-      client: TrashClientDocument,
-      tags: TrashTagsDocument,
-    }[view] || TrashDocument;
+    return (
+      {
+        all: TrashAllDocument,
+        bib: TrashBibDocument,
+        client: TrashClientDocument,
+        tags: TrashTagsDocument,
+      }[view] || TrashDocument
+    );
   }
 }

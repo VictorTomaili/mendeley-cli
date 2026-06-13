@@ -14,7 +14,7 @@ test('addQueryParams appends parameters to a relative URL', () => {
 test('addQueryParams preserves existing query parameters', () => {
   assert.equal(
     addQueryParams('/documents?view=all', { limit: 50 }),
-    '/documents?view=all&limit=50'
+    '/documents?view=all&limit=50',
   );
 });
 
@@ -25,15 +25,12 @@ test('addQueryParams replaces existing values', () => {
 test('addQueryParams skips undefined and empty values', () => {
   assert.equal(
     addQueryParams('/documents', { view: 'all', sort: undefined, order: null, extra: '' }),
-    '/documents?view=all'
+    '/documents?view=all',
   );
 });
 
 test('addQueryParams supports absolute URLs', () => {
-  assert.equal(
-    addQueryParams('https://example.com/x', { a: '1' }),
-    'https://example.com/x?a=1'
-  );
+  assert.equal(addQueryParams('https://example.com/x', { a: '1' }), 'https://example.com/x?a=1');
 });
 
 test('addQueryParams supports array values', () => {

@@ -21,9 +21,15 @@ function rsp(body, opts = {}) {
 
 test('Page.items materialises the items', async () => {
   const session = {};
-  const r = rsp([{ id: 'a', title: 'A' }, { id: 'b', title: 'B' }], {
-    headers: { 'mendeley-count': '2' },
-  });
+  const r = rsp(
+    [
+      { id: 'a', title: 'A' },
+      { id: 'b', title: 'B' },
+    ],
+    {
+      headers: { 'mendeley-count': '2' },
+    },
+  );
   const p = new Page(session, r, Sample);
   const items = await p.items;
   assert.equal(items.length, 2);
@@ -66,8 +72,11 @@ test('Page.all walks the entire collection', async () => {
   const p = new Page(
     session,
     rsp([{ id: 'a' }, { id: 'b' }], { headers: { link: '</p2>; rel="next"' } }),
-    Sample
+    Sample,
   );
   const all = await p.all();
-  assert.deepEqual(all.map((i) => i.id), ['a', 'b', 'c', 'd']);
+  assert.deepEqual(
+    all.map((i) => i.id),
+    ['a', 'b', 'c', 'd'],
+  );
 });

@@ -45,11 +45,8 @@ export class GetByIdResource extends BaseResource {
    * the object is needed.
    */
   getLazy(id, kwargs = {}) {
-    return new LazyResponseObject(
-      this._session,
-      id,
-      this._objType(kwargs),
-      () => this.get(id, kwargs)
+    return new LazyResponseObject(this._session, id, this._objType(kwargs), () =>
+      this.get(id, kwargs),
     );
   }
 }

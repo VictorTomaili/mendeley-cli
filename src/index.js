@@ -46,11 +46,7 @@ export {
   refreshToken,
 } from './auth.js';
 export { MendeleySession, USER_AGENT } from './session.js';
-export {
-  MendeleyApiException,
-  MendeleyAuthException,
-  MendeleyException,
-} from './exception.js';
+export { MendeleyApiException, MendeleyAuthException, MendeleyException } from './exception.js';
 export { Page } from './pagination.js';
 export { ResponseObject, SessionResponseObject, LazyResponseObject } from './response.js';
 

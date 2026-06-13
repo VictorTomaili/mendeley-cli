@@ -15,9 +15,25 @@ import { BaseDocument, BaseBibView, BaseClientView } from './base_documents.js';
 import { File } from './files.js';
 import { guessMime } from '../mime.js';
 
-const BASE_FIELDS = ['id', 'title', 'type', 'source', 'year', 'identifiers', 'keywords', 'abstract'];
+const BASE_FIELDS = [
+  'id',
+  'title',
+  'type',
+  'source',
+  'year',
+  'identifiers',
+  'keywords',
+  'abstract',
+];
 const BIB_FIELDS = BaseBibView.fields();
-const CLIENT_FIELDS = [...BaseClientView.fields(), 'read', 'starred', 'authored', 'confirmed', 'hidden'];
+const CLIENT_FIELDS = [
+  ...BaseClientView.fields(),
+  'read',
+  'starred',
+  'authored',
+  'confirmed',
+  'hidden',
+];
 const TAGS_FIELDS = ['tags'];
 
 /** Format keyword args before they're sent over the wire. */

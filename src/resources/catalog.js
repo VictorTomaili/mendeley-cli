@@ -28,16 +28,7 @@ export class Catalog extends GetByIdResource {
     return viewType(kwargs.view);
   }
 
-  async byIdentifier({
-    arxiv,
-    doi,
-    isbn,
-    issn,
-    pmid,
-    scopus,
-    filehash,
-    view,
-  } = {}) {
+  async byIdentifier({ arxiv, doi, isbn, issn, pmid, scopus, filehash, view } = {}) {
     const url = addQueryParams('/catalog', {
       arxiv,
       doi,
@@ -57,17 +48,7 @@ export class Catalog extends GetByIdResource {
     return new objType(this.session, body[0]);
   }
 
-  async lookup({
-    arxiv,
-    doi,
-    pmid,
-    filehash,
-    title,
-    authors,
-    year,
-    source,
-    view,
-  } = {}) {
+  async lookup({ arxiv, doi, pmid, filehash, title, authors, year, source, view } = {}) {
     const url = addQueryParams('/metadata', {
       arxiv,
       doi,
@@ -111,10 +92,12 @@ export class CatalogSearch extends ListResource {
 }
 
 export function viewType(view) {
-  return {
-    bib: CatalogBibDocument,
-    client: CatalogClientDocument,
-    stats: CatalogStatsDocument,
-    all: CatalogAllDocument,
-  }[view] || CatalogDocument;
+  return (
+    {
+      bib: CatalogBibDocument,
+      client: CatalogClientDocument,
+      stats: CatalogStatsDocument,
+      all: CatalogAllDocument,
+    }[view] || CatalogDocument
+  );
 }

@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Changed
+
 - **Node.js**: CI matrix is now Node 22 + 24 (latest 2 LTS lines).
   Dropped Node 18 and Node 20 from the test matrix (both are EOL).
   The `engines` field in `package.json` is now `>=20.0.0`; update

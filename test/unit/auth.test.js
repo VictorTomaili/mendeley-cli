@@ -111,7 +111,7 @@ test('fetchClientCredentialsToken normalises text/plain error responses', async 
         tokenUrl: 'https://example.com/oauth/token',
         clientId: 'cid',
         clientSecret: 'secret',
-      })
+      }),
     );
   } finally {
     globalThis.fetch = originalFetch;

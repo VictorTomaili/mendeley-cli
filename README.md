@@ -8,7 +8,7 @@
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Tests: 51 passing](https://img.shields.io/badge/tests-51%20passing-brightgreen)](test/)
 
-*Query 100 M+ academic papers, manage your library, export BibTeX — from the terminal.*
+_Query 100 M+ academic papers, manage your library, export BibTeX — from the terminal._
 
 [Getting started](#getting-started) · [CLI reference](#cli-reference) · [Library API](#library-api) · [AI agents](#built-for-ai-agents)
 
@@ -51,7 +51,7 @@ mendeley auth set redirectUri http://localhost:11595
 
 ### Authenticate
 
-The CLI does **not** open a browser.  It prints the authorisation URL and
+The CLI does **not** open a browser. It prints the authorisation URL and
 prompts you to paste the redirect URL back after logging in:
 
 ```bash
@@ -87,12 +87,12 @@ mendeley --skill                      # full API as a skill document (for AI sys
 
 ### Output formats
 
-| Flag | Format | Use case |
-|------|--------|----------|
-| `--format json` *(default)* | JSON | AI agents, piping to `jq` |
-| `--format text` | Key-value | Quick human reading |
-| `--format tsv` | Tab-separated | Spreadsheet import |
-| `--format ids` | Bare IDs, one per line | Piping to `xargs` |
+| Flag                        | Format                 | Use case                  |
+| --------------------------- | ---------------------- | ------------------------- |
+| `--format json` _(default)_ | JSON                   | AI agents, piping to `jq` |
+| `--format text`             | Key-value              | Quick human reading       |
+| `--format tsv`              | Tab-separated          | Spreadsheet import        |
+| `--format ids`              | Bare IDs, one per line | Piping to `xargs`         |
 
 ### Commands
 
@@ -222,8 +222,8 @@ console.log(`Found ${(await page.items).length} results`);
 
 // Look up by DOI
 const doc = await session.catalog.byIdentifier({ doi: '10.1038/nature14539' });
-console.log(doc.title);   // "Deep learning"
-console.log(doc.year);    // 2015
+console.log(doc.title); // "Deep learning"
+console.log(doc.year); // 2015
 ```
 
 ### Authorization-code flow with PKCE
@@ -276,14 +276,14 @@ $ mendeley library add-by-doi 10.1186/s12943-022-01518-8
 
 ## Environment variables
 
-| Variable | Description |
-|----------|-------------|
-| `MENDELEY_CLIENT_ID` | OAuth client ID (overrides credentials.json) |
-| `MENDELEY_CLIENT_SECRET` | OAuth client secret |
-| `MENDELEY_REDIRECT_URI` | OAuth redirect URI |
-| `MENDELEY_HOST` | API base URL (default `https://api.mendeley.com`) |
-| `MENDELEY_CONFIG` | Path to `credentials.json` |
-| `MENDELEY_TOKEN_FILE` | Path to `token.json` |
+| Variable                 | Description                                       |
+| ------------------------ | ------------------------------------------------- |
+| `MENDELEY_CLIENT_ID`     | OAuth client ID (overrides credentials.json)      |
+| `MENDELEY_CLIENT_SECRET` | OAuth client secret                               |
+| `MENDELEY_REDIRECT_URI`  | OAuth redirect URI                                |
+| `MENDELEY_HOST`          | API base URL (default `https://api.mendeley.com`) |
+| `MENDELEY_CONFIG`        | Path to `credentials.json`                        |
+| `MENDELEY_TOKEN_FILE`    | Path to `token.json`                              |
 
 ## Development
 

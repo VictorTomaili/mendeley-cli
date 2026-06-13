@@ -5,11 +5,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import {
-  LazyResponseObject,
-  ResponseObject,
-  SessionResponseObject,
-} from '../../src/response.js';
+import { LazyResponseObject, ResponseObject, SessionResponseObject } from '../../src/response.js';
 
 class Sample extends ResponseObject {
   static fields() {
