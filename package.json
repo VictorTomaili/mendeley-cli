@@ -1,7 +1,7 @@
 {
-  "name": "mendeley",
+  "name": "mendeley-cli",
   "version": "1.0.0",
-  "description": "JavaScript SDK and AI-agent-friendly CLI for the Mendeley API.",
+  "description": "AI-agent-friendly CLI & JavaScript SDK for the Mendeley API",
   "type": "module",
   "main": "src/index.js",
   "exports": {
@@ -40,7 +40,7 @@
     "oauth2"
   ],
   "license": "Apache-2.0",
-  "author": "Mendeley",
+  "author": "Victor Tomaili <victor@tomaili.com>",
   "optionalDependencies": {
     "open": "^10.1.0"
   }

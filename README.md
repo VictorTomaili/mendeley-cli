@@ -1,36 +1,206 @@
-# mendeley-js-sdk
+<div align="center">
 
-A modern JavaScript port of the [mendeley-python-sdk](https://github.com/Mendeley/mendeley-python-sdk), plus a CLI designed for AI agents to manage a Mendeley library.
+# 🔬 mendeley-cli
 
-The library targets **Node.js 18+** and uses **ESM** (`"type": "module"`).  No transpilation, no TypeScript build step — just `import { Mendeley } from 'mendeley-js-sdk'`.
+**AI-agent-friendly CLI & JavaScript SDK for the Mendeley API**
 
-## Features
+[![Node.js >= 18](https://img.shields.io/badge/node-%3E%3D18-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
+[![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
+[![Tests: 51 passing](https://img.shields.io/badge/tests-51%20passing-brightgreen)](test/)
 
-* Full coverage of the Mendeley REST API: documents, files, folders, groups, annotations, catalog, profiles, trash.
-* PKCE + refresh-token-based OAuth with a tiny zero-dep auth helper.
-* A fluent model layer with lazy fields, pagination, and resource classes.
-* A shell CLI (`mendeley`) that defaults to **JSON output** for AI agents, and supports `--format text|tsv|ids` for humans.
-* Every CLI command has a `--help` that doubles as a **skill description**, and a root `--skill` flag that prints the full API as a single document you can paste into a system prompt.
+*Query 100 M+ academic papers, manage your library, export BibTeX — from the terminal.*
 
-## Install
+[Getting started](#getting-started) · [CLI reference](#cli-reference) · [Library API](#library-api) · [AI agents](#built-for-ai-agents)
+
+</div>
+
+---
+
+## Why this exists
+
+The official Mendeley SDK is Python-only and hasn't been updated in years. This project provides:
+
+- **A shell CLI** (`mendeley`) that defaults to **JSON output** — perfect for scripting and AI agents
+- **A JavaScript library** (`import { Mendeley } from 'mendeley-cli'`) for Node.js 18+
+- **Zero dependencies** (the `open` package is optional, for browser launch)
+- **PKCE auth** with automatic token refresh — log in once, stay logged in
+- **73 help pages** with examples, plus a `--skill` flag that dumps the full command surface as Markdown for LLM system prompts
+
+## Getting started
 
 ```bash
-npm install mendeley-js-sdk
+# Install globally (recommended)
+npm install -g mendeley-cli
+
+# Or run directly from source
+git clone https://github.com/VictorTomaili/mendeley-cli.git
+cd mendeley-cli
+npm install
+npm link        # makes 'mendeley' available system-wide
 ```
 
-Or run the CLI straight from a checkout:
+### Configure credentials
+
+Get your client ID at [dev.mendeley.com](https://dev.mendeley.com/):
 
 ```bash
-git clone https://github.com/you/mendeley-js-sdk
-cd mendeley-js-sdk
-npm install     # only needed for the `open` optional dep
-node bin/mendeley.js --help
+mendeley auth set clientId YOUR_CLIENT_ID
+mendeley auth set clientSecret YOUR_CLIENT_SECRET
+mendeley auth set redirectUri http://localhost:11595
 ```
 
-## Library quick start
+### Authenticate
+
+**One-step** (opens a browser):
+
+```bash
+mendeley auth login
+```
+
+**Two-step** (for headless servers / AI agents):
+
+```bash
+mendeley auth url                    # prints a login URL + saves PKCE verifier
+# ... visit URL in any browser, log in, copy the redirect URL ...
+mendeley auth exchange "http://localhost:11595/?code=...&state=..."
+```
+
+### Verify
+
+```bash
+mendeley whoami
+```
+
+## CLI reference
+
+Every command supports `--help` with full usage, options, and examples:
+
+```bash
+mendeley --help                       # top-level help
+mendeley documents list --help        # per-command help
+mendeley --skill                      # full API as a skill document (for AI system prompts)
+```
+
+### Output formats
+
+| Flag | Format | Use case |
+|------|--------|----------|
+| `--format json` *(default)* | JSON | AI agents, piping to `jq` |
+| `--format text` | Key-value | Quick human reading |
+| `--format tsv` | Tab-separated | Spreadsheet import |
+| `--format ids` | Bare IDs, one per line | Piping to `xargs` |
+
+### Commands
+
+<details>
+<summary><strong>auth</strong> — manage authentication</summary>
+
+```
+mendeley auth login                  # open browser, PKCE login
+mendeley auth logout                 # delete saved token
+mendeley auth status                 # show config (no secrets)
+mendeley auth whoami                 # test token via /profiles/me
+mendeley auth url                    # print login URL (headless step 1)
+mendeley auth exchange <url|code>    # exchange code for token (headless step 2)
+mendeley auth set <key> <value>      # set clientId, clientSecret, redirectUri, host
+mendeley auth unset <key>            # remove a credential
+```
+
+</details>
+
+<details>
+<summary><strong>catalog</strong> — browse the global Mendeley catalog (100 M+ papers)</summary>
+
+```
+mendeley catalog search "machine learning" --limit 10
+mendeley catalog by-doi 10.1038/nature14539
+mendeley catalog by-identifier --arxiv 1706.03762
+mendeley catalog lookup --title "Attention is all you need"
+mendeley catalog advanced-search --author Hinton --min-year 2017
+mendeley catalog get <id>
+```
+
+</details>
+
+<details>
+<summary><strong>documents</strong> — manage documents in your library</summary>
+
+```
+mendeley documents list --limit 50 --all
+mendeley documents get <id>
+mendeley documents search "deep learning"
+mendeley documents advanced-search --author LeCun --min-year 2018
+mendeley documents create --title "My Paper" --type journal
+mendeley documents create-from-file ./paper.pdf
+mendeley documents update <id> --data '{"title":"New Title"}'
+mendeley documents delete <id>
+mendeley documents move-to-trash <id>
+mendeley documents attach-file <id> ./supplement.pdf
+mendeley documents add-note <id> "important finding"
+mendeley documents annotations <id>
+mendeley documents files <id>
+mendeley documents export-bibtex <id>
+```
+
+</details>
+
+<details>
+<summary><strong>library</strong> — high-level library operations</summary>
+
+```
+mendeley library export-bibtex --out refs.bib
+mendeley library export-json --out library.json
+mendeley library dedupe --by doi
+mendeley library stats
+mendeley library recent --limit 5
+mendeley library by-tag "to-read"
+mendeley library add-by-doi 10.1038/nature14539
+mendeley library add-by-arxiv 1706.03762
+```
+
+</details>
+
+<details>
+<summary><strong>folders · groups · files · annotations · trash · profile</strong></summary>
+
+```
+mendeley folders list --all
+mendeley folders create "Reading List" --parent <id>
+mendeley folders documents <folderId>
+mendeley folders add-document <folderId> <docId>
+
+mendeley groups list
+mendeley groups members <groupId>
+mendeley groups documents <groupId>
+
+mendeley files list --document <docId>
+mendeley files download <fileId> /tmp/papers
+
+mendeley annotations list --document <docId>
+mendeley annotations get <id>
+mendeley annotations update <id> --data '{"text":"updated"}'
+mendeley annotations delete <id>
+
+mendeley trash list
+mendeley trash restore <id>
+mendeley trash empty --yes
+
+mendeley profile me
+mendeley profile get <id>
+```
+
+</details>
+
+## Library API
+
+Use the SDK programmatically in any Node.js 18+ project:
+
+```bash
+npm install mendeley-cli
+```
 
 ```js
-import { Mendeley } from 'mendeley-js-sdk';
+import { Mendeley } from 'mendeley-cli';
 
 const mendeley = new Mendeley({
   clientId: 'YOUR_CLIENT_ID',
@@ -38,114 +208,111 @@ const mendeley = new Mendeley({
   redirectUri: 'http://localhost:11595',
 });
 
-// One-time login (PKCE)
+// Client-credentials flow (no user interaction)
+const session = await mendeley.startClientCredentialsFlow().authenticate();
+
+// Search the catalog
+const results = await session.catalog.search('machine learning', { view: 'all' });
+const page = await results.list({ pageSize: 10 });
+console.log(`Found ${(await page.items).length} results`);
+
+// Look up by DOI
+const doc = await session.catalog.byIdentifier({ doi: '10.1038/nature14539' });
+console.log(doc.title);   // "Deep learning"
+console.log(doc.year);    // 2015
+```
+
+### Authorization-code flow with PKCE
+
+```js
 const flow = await mendeley.startAuthorizationCodeFlowAsync({ usePkce: true });
-console.log('Open this URL in your browser:');
-console.log(flow.getLoginUrl());
+console.log('Visit:', flow.getLoginUrl());
 
-// …wait for the callback to be received…
-const session = await flow.authenticate(codeFromRedirect);
-
-// Use the library
+// ... user completes login in browser ...
+const session = await flow.authenticate(authorizationCode);
 const me = await session.profiles.me;
-console.log(me.first_name);
-
-const docs = await session.documents.all({ view: 'client' });
-for (const d of docs) console.log(d.title);
+console.log(`Hello, ${me.first_name}`);
 ```
 
-## CLI quick start
+## Built for AI agents
+
+The CLI is designed as a **tool** that AI agents can call directly. Key design decisions:
+
+1. **JSON by default** — output is always valid JSON, ready for parsing
+2. **`--skill` flag** — prints the entire CLI surface as a Markdown document you can paste into a system prompt:
+
+   ```bash
+   mendeley --skill > MENDELEY_SKILL.md
+   ```
+
+3. **Structured errors** — errors are JSON objects with `ok: false` and a human-readable `error` field
+4. **Two-step headless auth** — no GUI required; the agent can run `mendeley auth url`, present the URL to the user, then run `mendeley auth exchange <url>` with the redirect
+5. **Every command documented** — `--help` shows synopsis, description, options, arguments, and at least one example
+
+### Example: AI agent workflow
+
+```
+Agent: I'll search the Mendeley catalog for papers about CRISPR.
+
+$ mendeley catalog search "CRISPR gene editing" --limit 5 --format ids
+> 436fcd07-37bf-36d8-9d86-3f073872c69d
+> a105c9f1-b55f-382a-a4ce-90241d15ec77
+> ...
+
+Agent: Found 5 papers. Let me get details on the first one.
+
+$ mendeley catalog get 436fcd07-37bf-36d8-9d86-3f073872c69d
+> { "title": "Current applications and future perspective of CRISPR/Cas9 ...", ... }
+
+Agent: Would you like me to add this to your library?
+
+$ mendeley library add-by-doi 10.1186/s12943-022-01518-8
+> { "ok": true, "id": "...", "title": "..." }
+```
+
+## Environment variables
+
+| Variable | Description |
+|----------|-------------|
+| `MENDELEY_CLIENT_ID` | OAuth client ID (overrides credentials.json) |
+| `MENDELEY_CLIENT_SECRET` | OAuth client secret |
+| `MENDELEY_REDIRECT_URI` | OAuth redirect URI |
+| `MENDELEY_HOST` | API base URL (default `https://api.mendeley.com`) |
+| `MENDELEY_CONFIG` | Path to `credentials.json` |
+| `MENDELEY_TOKEN_FILE` | Path to `token.json` |
+
+## Development
 
 ```bash
-# 1. Configure credentials
-mendeley auth set clientId 23562
-mendeley auth set clientSecret fXn0bokYBMNJVo5S
-mendeley auth set redirectUri http://localhost:11595
+git clone https://github.com/VictorTomaili/mendeley-cli.git
+cd mendeley-cli
+npm install
+npm link          # install global 'mendeley' command (symlink — edits are live)
 
-# 2. Log in (opens a browser, captures the callback, saves token.json)
-mendeley auth login
-
-# 3. Confirm
-mendeley whoami
-
-# 4. Start working
-mendeley documents list --limit 5
-mendeley catalog search "machine learning" --format ids --limit 20
-mendeley library export-bibtex --out refs.bib
-mendeley library dedupe
-mendeley library add-by-doi 10.1038/nature12373
+npm test          # run all 51 tests
+npm run test:unit
+npm run test:integration
 ```
 
-### Output formats
+No build step — this is plain ESM JavaScript targeting Node.js 18+.
 
-* `--format json` (default) — a single JSON document.  Best for AI agents.
-* `--format text` — a one-record-per-section key/value listing.
-* `--format tsv` — a tab-separated table.
-* `--format ids` — bare identifiers, one per line.  Best for piping.
-
-### The help system
-
-Every command has a `--help` flag that produces a "skill" description:
-
-```text
-$ mendeley documents add-note --help
-
-mendeley documents add-note <id> <text> — add a text note to a document
-
-Synopsis:
-  $ mendeley documents add-note <id> <text> [flags]
-
-Description:
-  Create a sticky-note style annotation containing the given
-  text.  Returns the new annotation JSON.
-
-Examples:
-  $ mendeley documents add-note abcdef12 "important — read carefully"
-```
-
-For the whole API, run:
-
-```bash
-mendeley --skill
-```
-
-This prints a single ~500-line Markdown document that describes every command, its options, its examples, and the global conventions.  It's designed to be pasted into an AI agent's system prompt.
-
-## File layout
+### Project structure
 
 ```
-src/                      The library
-  client.js               `Mendeley` class — entry point
-  session.js              `MendeleySession` — authenticated resource container
-  auth.js                 OAuth flow helpers (auth-code, client-credentials, PKCE)
-  login.js                Local callback server + browser-opener
-  exception.js            `MendeleyException`
-  mime.js                 Filename → MIME
-  pagination.js           `Page`, `iter`
-  response.js             `ResponseObject`, `LazyResponseObject`
-  resources/              REST resource classes
-  models/                 JSON model classes
-bin/mendeley.js           The CLI entrypoint
-lib/cli/                  The CLI framework
-  command.js              Subcommand framework with help + examples
-  output.js               Output formatter (json/text/tsv/ids)
-  credentials.js          Build a session from env + config files
-  file_helper.js          File-download helper
-  commands/               One file per top-level subcommand
-test/                     Tests (39 unit + 12 command + 1 integration)
+bin/mendeley.js         CLI entry point
+lib/cli/                CLI framework (command parser, output, credentials)
+  commands/             One file per top-level subcommand
+src/                    JavaScript SDK
+  client.js             Mendeley class — entry point
+  session.js            MendeleySession — authenticated resource container
+  auth.js               OAuth flow helpers (auth-code, client-credentials, PKCE)
+  resources/            REST resource classes
+  models/               JSON model classes with lazy fields
+  pagination.js         Page iterator
+  response.js           ResponseObject, LazyResponseObject
+test/                   51 tests (unit + integration)
 ```
-
-## Configuration
-
-* **Credentials** are read from `~/.mendeley/credentials.json` (or `$MENDELEY_CONFIG`).  Use `mendeley auth set <key> <value>` to manage them; recognise keys are `clientId`, `clientSecret`, `redirectUri`, and `host`.
-* **Tokens** are stored in `~/.mendeley/token.json` (or `$MENDELEY_TOKEN_FILE`).  The CLI uses the saved refresh token automatically; you only need to log in once.
-* **Environment variables** (override config):
-  * `MENDELEY_CLIENT_ID`
-  * `MENDELEY_CLIENT_SECRET`
-  * `MENDELEY_REDIRECT_URI`
-  * `MENDELEY_HOST` (default `https://api.mendeley.com`)
-  * `MENDELEY_CONFIG` and `MENDELEY_TOKEN_FILE` (paths)
 
 ## License
 
-MIT
+[Apache-2.0](LICENSE)

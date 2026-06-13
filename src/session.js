@@ -14,7 +14,7 @@ import { Profiles } from './resources/profiles.js';
 import { Trash } from './resources/trash.js';
 import { FolderDocuments } from './resources/folder_documents.js';
 
-export const USER_AGENT = `mendeley-js-sdk/1.0.0 node`;
+export const USER_AGENT = `mendeley-cli/1.0.0 node`;
 
 /**
  * Authentication session.  Holds an OAuth2 token, exposes fetch helpers
