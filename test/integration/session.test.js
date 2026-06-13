@@ -277,3 +277,104 @@ test('refresh coverage: stream:true with a non-OK response after refresh raises'
   const session = new MendeleySession(m, { access_token: 'orig_tok' }, null, refresher);
   await assert.rejects(() => session.get('/foo', { stream: true }), /401/);
 });
+
+/* ── raiseApiError body-read regression (issue #5) ───────────────────────── */
+
+/**
+ * Build a Response that records how many times its body is read.
+ * Returns the Response plus a function to read the counts.
+ */
+function bodyTrackingResponse(body, { status = 200, headers = {} } = {}) {
+  let jsonReads = 0;
+  let textReads = 0;
+  const rsp = new Response(body, { status, headers });
+  const originalJson = rsp.json.bind(rsp);
+  const originalText = rsp.text.bind(rsp);
+  rsp.json = async () => {
+    jsonReads += 1;
+    return originalJson();
+  };
+  rsp.text = async () => {
+    textReads += 1;
+    return originalText();
+  };
+  return { rsp, counts: () => ({ jsonReads, textReads, bodyReads: jsonReads + textReads }) };
+}
+
+test('raiseApiError regression: reads the body exactly once for a JSON error', async () => {
+  const { rsp, counts } = bodyTrackingResponse(
+    JSON.stringify({ message: 'Catalog document not found' }),
+    { status: 404, headers: { 'content-type': 'application/json' } },
+  );
+  globalThis.fetch = recordingFetch([() => rsp]);
+  const m = new Mendeley({ clientId: 'cid' });
+  const session = new MendeleySession(m, { access_token: 'tok' });
+  await assert.rejects(() => session.get('/nonexistent'), /Catalog document not found/);
+  // The fix is that the body is read exactly once. The old code would
+  // call .json() then (on failure) .text(), reading twice.
+  assert.equal(
+    counts().bodyReads,
+    1,
+    `body must be read exactly once, got ${JSON.stringify(counts())}`,
+  );
+});
+
+test('raiseApiError regression: reads the body exactly once for a non-JSON error', async () => {
+  const { rsp, counts } = bodyTrackingResponse('plain text error body', {
+    status: 500,
+    headers: { 'content-type': 'text/plain' },
+  });
+  globalThis.fetch = recordingFetch([() => rsp]);
+  const m = new Mendeley({ clientId: 'cid' });
+  const session = new MendeleySession(m, { access_token: 'tok' });
+  await assert.rejects(() => session.get('/foo'), /plain text error body/);
+  assert.equal(
+    counts().bodyReads,
+    1,
+    `body must be read exactly once, got ${JSON.stringify(counts())}`,
+  );
+});
+
+test('raiseApiError regression: reads the body exactly once for an empty body', async () => {
+  const { rsp, counts } = bodyTrackingResponse('', { status: 502 });
+  globalThis.fetch = recordingFetch([() => rsp]);
+  const m = new Mendeley({ clientId: 'cid' });
+  const session = new MendeleySession(m, { access_token: 'tok' });
+  await assert.rejects(() => session.get('/foo'), /status: 502/);
+  assert.equal(
+    counts().bodyReads,
+    1,
+    `body must be read exactly once even when empty, got ${JSON.stringify(counts())}`,
+  );
+});
+
+test('raiseApiError regression: prefers structured error fields over the raw body', async () => {
+  globalThis.fetch = recordingFetch([
+    () =>
+      new Response(
+        JSON.stringify({
+          error: 'invalid_grant',
+          error_description: 'The authorization code is invalid',
+        }),
+        { status: 400, headers: { 'content-type': 'application/json' } },
+      ),
+  ]);
+  const m = new Mendeley({ clientId: 'cid' });
+  const session = new MendeleySession(m, { access_token: 'tok' });
+  await assert.rejects(() => session.get('/foo'), /The authorization code is invalid/);
+});
+
+test('raiseApiError regression: 404 from a stream:true request reads the body once', async () => {
+  // Issue #5 was first observed on the catalog lookup path, which goes
+  // through the stream:false code path, but the stream:true branch also
+  // calls raiseApiError and must not regress.
+  const { rsp, counts } = bodyTrackingResponse(JSON.stringify({ message: 'Not found' }), {
+    status: 404,
+    headers: { 'content-type': 'application/json' },
+  });
+  globalThis.fetch = recordingFetch([() => rsp]);
+  const m = new Mendeley({ clientId: 'cid' });
+  const session = new MendeleySession(m, { access_token: 'tok' });
+  await assert.rejects(() => session.get('/foo', { stream: true }), /Not found/);
+  assert.equal(counts().bodyReads, 1);
+});
