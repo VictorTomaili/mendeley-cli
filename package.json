@@ -41,6 +41,9 @@
   ],
   "license": "Apache-2.0",
   "author": "Victor Tomaili <victor@tomaili.com>",
+  "publishConfig": {
+    "registry": "https://registry.npmjs.org"
+  },
   "optionalDependencies": {
     "open": "^10.1.0"
   }
