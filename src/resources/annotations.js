@@ -23,10 +23,12 @@ export class Annotations extends GetByIdResource {
   async get(id) {
     return super.get(id);
   }
+  // `GetByIdResource` does not implement list()/iter(); delegate to
+  // `ListResource` via composition (mirrors DocumentsBase).
   async list(kwargs = {}) {
-    return super.list(kwargs);
+    return ListResource.prototype.list.call(this, kwargs);
   }
   async *iter(kwargs = {}) {
-    yield* super.iter(kwargs);
+    yield* ListResource.prototype.iter.call(this, kwargs);
   }
 }

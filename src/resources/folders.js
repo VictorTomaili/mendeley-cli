@@ -25,7 +25,13 @@ export class Folders extends GetByIdResource {
   }
 
   async list(kwargs = {}) {
-    return super.list(kwargs);
+    // `GetByIdResource` does not implement list(); delegate to
+    // `ListResource` via composition, like `DocumentsBase` does.
+    return ListResource.prototype.list.call(this, kwargs);
+  }
+
+  async *iter(kwargs = {}) {
+    yield* ListResource.prototype.iter.call(this, kwargs);
   }
 
   async create({ name, parentId, groupId } = {}) {

@@ -96,7 +96,14 @@ libraryCmd.register(root);
       format = argv[formatFlagIdx + 1] || 'json';
     }
   }
-  const out = new Output(format);
+  let out;
+  try {
+    out = new Output(format);
+  } catch (err) {
+    // Bad --format: print the error in plain text and exit.
+    process.stderr.write(`error: ${err.message}\n`);
+    process.exit(2);
+  }
 
   if (argv.includes('--skill')) {
     process.stdout.write(renderSkill(root) + '\n');
@@ -145,9 +152,8 @@ function renderSkill(root) {
   lines.push('');
   lines.push(`## Authentication`);
   lines.push(`  1. Configure credentials once:  mendeley auth set clientId <id>`);
-  lines.push(`  2. Then either:`);
-  lines.push(`       a. ` + '`mendeley auth login`  (opens a browser; needs a local callback port)');
-  lines.push(`       b. ` + '`mendeley auth url` then visit the URL, then `mendeley auth exchange <code>`');
+  lines.push(`  2. ` + '`mendeley auth login` — prints a URL, you visit it, paste the redirect URL back.');
+  lines.push(`     No browser is opened, no callback server is started.`);
   lines.push(`  3. Verify with ` + '`mendeley whoami`');
   lines.push(`  4. Subsequent calls auto-refresh the token from ` + '`~/.mendeley/token.json`');
   lines.push('');
@@ -158,7 +164,7 @@ function renderSkill(root) {
   lines.push('  • `mendeley catalog search "machine learning" --limit 5` — search the global catalog');
   lines.push('  • `mendeley folders list` — list folders in the library');
   lines.push('  • `mendeley library add-by-doi 10.1038/nature12373` — add a paper by DOI');
-  lines.push('  • `mendeley library dedupe` — find duplicate documents');
+  lines.push('  • `mendeley library dedupe --by doi` — find duplicate documents');
   lines.push('  • `mendeley library export-bibtex` — dump the library as BibTeX');
   lines.push('  • `mendeley profile me` — view the authenticated user');
   lines.push('');

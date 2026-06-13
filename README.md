@@ -51,13 +51,17 @@ mendeley auth set redirectUri http://localhost:11595
 
 ### Authenticate
 
-**One-step** (opens a browser):
+The CLI does **not** open a browser.  It prints the authorisation URL and
+prompts you to paste the redirect URL back after logging in:
 
 ```bash
 mendeley auth login
+# 1. Open the printed URL in a browser and log in
+# 2. Copy the full redirect URL from the browser address bar
+# 3. Paste it at the prompt
 ```
 
-**Two-step** (for headless servers / AI agents):
+For headless servers / CI / AI agents, use the two-step flow instead:
 
 ```bash
 mendeley auth url                    # prints a login URL + saves PKCE verifier
@@ -96,7 +100,7 @@ mendeley --skill                      # full API as a skill document (for AI sys
 <summary><strong>auth</strong> — manage authentication</summary>
 
 ```
-mendeley auth login                  # open browser, PKCE login
+mendeley auth login                  # print URL, paste redirect URL back (no browser)
 mendeley auth logout                 # delete saved token
 mendeley auth status                 # show config (no secrets)
 mendeley auth whoami                 # test token via /profiles/me
@@ -246,7 +250,7 @@ The CLI is designed as a **tool** that AI agents can call directly. Key design d
    ```
 
 3. **Structured errors** — errors are JSON objects with `ok: false` and a human-readable `error` field
-4. **Two-step headless auth** — no GUI required; the agent can run `mendeley auth url`, present the URL to the user, then run `mendeley auth exchange <url>` with the redirect
+4. **Headless auth** — no browser is opened; the agent can run `mendeley auth login` to get a URL, or `mendeley auth url` + `mendeley auth exchange` for a two-step flow
 5. **Every command documented** — `--help` shows synopsis, description, options, arguments, and at least one example
 
 ### Example: AI agent workflow
