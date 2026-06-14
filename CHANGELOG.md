@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `files add-sticky-note` now accepts the same `--positions <json>`
+  and `--color <json>` flags as `files add-highlight`, so the two
+  annotation commands share a consistent interface. The convenience
+  flags `--xpos`/`--ypos`/`--page` still work for the common
+  single-point case (the CLI builds a one-element positions array
+  from them). A clean error is printed when neither `--positions`
+  nor all of `--xpos/--ypos/--page` is supplied. (#118)
+- `files add-highlight` no longer crashes with
+  `Cannot read properties of undefined (reading 'json')` when
+  `--color` is omitted. (Found while fixing #118.)
 - `authors` and `created` are now included in every document's
   JSON output (e.g. `documents get`, `documents list`, `library
 recent`, `catalog search`). Both are part of the core document

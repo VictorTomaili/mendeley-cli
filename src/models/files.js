@@ -101,8 +101,13 @@ export class File extends SessionResponseObject {
       document_id: (await this.document()).id,
       filehash: this.json.filehash,
       positions: boundingBoxes.map((b) => (b.json ? b.json : b)),
-      color: color.json ? color.json : color,
     };
+    // Only include color when one was supplied; a Color model exposes
+    // .json, a plain {r,g,b} object is used as-is. Guard against
+    // undefined/null so callers can omit the color (#118).
+    if (color) {
+      annotation.color = color.json ? color.json : color;
+    }
     const rsp = await this.session.post('/annotations', {
       data: JSON.stringify(annotation),
       headers: {
