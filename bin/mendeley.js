@@ -37,7 +37,11 @@ root.longDescription(
     'Mendeley Ltd. or Elsevier. By using this tool you accept the ' +
     'Mendeley Terms of Use (https://www.elsevier.com/legal/elsevier-mendeley-terms-and-conditions). ' +
     'Official resources: https://www.mendeley.com, ' +
-    'https://dev.mendeley.com/, https://github.com/mendeley/mendeley-python-sdk.',
+    'https://dev.mendeley.com/, https://github.com/mendeley/mendeley-python-sdk.\n' +
+    'Windows note: when calling mendeley from another language via a ' +
+    'non-shell process (e.g. Python subprocess.run(["mendeley", ...])), ' +
+    'resolve the full .CMD path or pass shell=True — see the README ' +
+    '"Calling mendeley from another language on Windows" section.',
 );
 
 root.option('--format <fmt>', 'output format (json, text, tsv, ids)', 'json');
@@ -166,6 +170,9 @@ function renderSkill(root) {
   );
   lines.push(
     `Every command supports \`--help\` for detailed usage and \`--skill\` (on the root) for the full reference.`,
+  );
+  lines.push(
+    `**Windows:** when calling \`mendeley\` from another language via a non-shell process (e.g. Python \`subprocess.run(["mendeley", ...])\`), resolve the full \`.CMD\` path (\`shutil.which("mendeley.cmd")\`) or pass \`shell=True\` — Windows \`CreateProcess\` does not auto-execute \`.CMD\` shims. See the README "Calling mendeley from another language on Windows" section.`,
   );
   lines.push('');
   lines.push(`## Global options`);

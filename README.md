@@ -59,6 +59,43 @@ npm install
 npm link        # makes 'mendeley' available system-wide
 ```
 
+### Calling `mendeley` from another language (Python, etc.) on Windows
+
+On Windows, `npm install -g` (or `pnpm add -g`) installs the
+`mendeley` command as a **`mendeley.CMD`** shim. Windows'
+`CreateProcess` (the native process launcher used by Python's
+`subprocess.run`, Node's `child_process.spawn`, and most other
+non-shell callers) does **not** auto-execute `.CMD` files — only
+the CMD shell does. As a result, a bare call like
+`subprocess.run(["mendeley", "--version"])` fails with
+`FileNotFoundError: [WinError 2]`, even though `mendeley --version`
+works fine in any Windows terminal (#105).
+
+**Fix — pick one of these:**
+
+```python
+import subprocess, shutil
+
+# Option A (recommended): resolve the full path to the .CMD shim
+mendeley = shutil.which("mendeley.cmd") or shutil.which("mendeley")
+subprocess.run([mendeley, "--version"])
+
+# Option B: pass shell=True (works, but with quoting/security caveats)
+subprocess.run(["mendeley", "--version"], shell=True)
+
+# Option C: call node directly on the installed entry point
+import subprocess, sys
+node = sys.executable  # or hard-code the Node.js path
+# Find the installed bin/mendeley.js (adjust the global prefix path)
+subprocess.run([node, r"C:\\Users\\me\\AppData\\Roaming\\npm\\node_modules\\mendeley-cli\\bin\\mendeley.js", "--version"])
+```
+
+In Node.js, the equivalent is `spawn(mendeleyPath, args, {shell: true})`
+or resolving the `.cmd` path explicitly.
+
+This only affects Windows and only non-shell callers. Linux and
+macOS are unaffected (the shebang `#!/usr/bin/env node` is honoured).
+
 ### Configure credentials
 
 Get your client ID at [dev.mendeley.com](https://dev.mendeley.com/):
