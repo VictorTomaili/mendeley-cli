@@ -13,7 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (`unknown subcommand: "…"`) instead of silently printing the
   parent help text (~1.8 KB) and exiting 0. When a close candidate
   exists, a `did you mean: <name>?` line is added: `mendeley
-  library stat` suggests `stats`; `mendeley library by-identifier`
+library stat` suggests `stats`; `mendeley library by-identifier`
   (a typo coming from `catalog by-identifier`) suggests `by-tag` via
   the shared `by-` prefix. The error always points at
   `mendeley <cmd> --help`. A real subcommand at the top level (e.g.
@@ -79,6 +79,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   directly from `src/login.js` (it was never exported from the SDK
   entry point), call Node's built-in child_process spawn or instruct
   users to open the URL manually.
+- **Documented the Windows `.CMD` shim workaround** (#105).
+  `npm install -g mendeley-cli` (or `pnpm add -g`) installs the
+  `mendeley` command as a `mendeley.CMD` shim on Windows. Windows'
+  `CreateProcess` (used by Python's `subprocess.run`, Node's
+  `child_process.spawn`, and most other non-shell callers) does not
+  auto-execute `.CMD` files, so a bare call like
+  `subprocess.run(["mendeley", "--version"])` fails with
+  `FileNotFoundError: [WinError 2]`. The README now has a
+  "Calling `mendeley` from another language on Windows" section
+  with three workarounds (`shutil.which("mendeley.cmd")`,
+  `shell=True`, or calling `node` on `bin/mendeley.js` directly),
+  and `mendeley --help` includes a one-line pointer.
 
 ## [0.2.0] - 2026-06-14
 
