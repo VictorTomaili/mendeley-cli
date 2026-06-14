@@ -206,3 +206,60 @@ describe('Catalog.byIdentifier error message includes the found record (#101)', 
     );
   });
 });
+
+describe('Catalog.byIdentifier identifier-count validation (#126)', () => {
+  test('throws when no identifier is supplied', async () => {
+    const session = makeFakeSession([
+      [{ id: 'cat-x', title: 'Whatever the default list returns', identifiers: {} }],
+    ]);
+    const catalog = new Catalog(session);
+    await assert.rejects(
+      () => catalog.byIdentifier({}),
+      (err) => {
+        assert.match(err.message, /exactly one identifier/i);
+        return true;
+      },
+    );
+    // No network call should have been made.
+    assert.equal(session.calls.length, 0);
+  });
+
+  test('throws when no identifier is supplied (all undefined)', async () => {
+    const session = makeFakeSession([[{ id: 'cat-x', identifiers: { doi: ['10.1/x'] } }]]);
+    const catalog = new Catalog(session);
+    await assert.rejects(
+      () => catalog.byIdentifier({ arxiv: undefined, doi: undefined }),
+      (err) => {
+        assert.match(err.message, /exactly one identifier/i);
+        return true;
+      },
+    );
+    assert.equal(session.calls.length, 0);
+  });
+
+  test('throws when more than one identifier is supplied', async () => {
+    const session = makeFakeSession([]);
+    const catalog = new Catalog(session);
+    await assert.rejects(
+      () => catalog.byIdentifier({ doi: '10.5555/1', arxiv: '1706.03762' }),
+      (err) => {
+        assert.match(err.message, /exactly one identifier/i);
+        assert.match(err.message, /2/);
+        // Message should name the offending identifiers.
+        assert.match(err.message, /doi|arxiv/i);
+        return true;
+      },
+    );
+    assert.equal(session.calls.length, 0);
+  });
+
+  test('accepts exactly one identifier (no regression)', async () => {
+    const session = makeFakeSession([
+      [{ id: 'cat-1', title: 'T', identifiers: { doi: ['10.5555/1'] } }],
+    ]);
+    const catalog = new Catalog(session);
+    const doc = await catalog.byIdentifier({ doi: '10.5555/1' });
+    assert.equal(doc.id, 'cat-1');
+    assert.equal(session.calls.length, 1);
+  });
+});

@@ -9,6 +9,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- `catalog by-identifier` now validates that exactly one identifier
+  flag is supplied. Previously, calling it with no flags hit the
+  default `/catalog` list and let `identifierMatches()` (which skips
+  undefined values) accept an arbitrary record as a high-confidence
+  match — so a lookup with no identifier could silently return a
+  random catalog item, and that bad match could flow into
+  `library add-by-*` writes. Both the SDK (`Catalog.byIdentifier()`)
+  and the CLI (`catalog by-identifier`) now reject zero and multiple
+  identifiers with a clean JSON-mode error before any network call.
+  (#126)
 - `files add-sticky-note` now genuinely persists the note `text`
   on the server for the `--positions` and `--color` code paths.
   Previously those paths called `File.addHighlight()` (which sends

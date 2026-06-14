@@ -29,6 +29,26 @@ export class Catalog extends GetByIdResource {
   }
 
   async byIdentifier({ arxiv, doi, isbn, issn, pmid, scopus, filehash, view } = {}) {
+    // Validate exactly one identifier is supplied (#126). Sending zero
+    // identifiers would hit the default /catalog list and let
+    // identifierMatches() (which skips undefined values) accept any
+    // record; sending multiple violates the documented single-identifier
+    // lookup contract.
+    const supplied = { arxiv, doi, isbn, issn, pmid, scopus, filehash };
+    const present = Object.entries(supplied).filter(([, v]) => v !== undefined && v !== null);
+    if (present.length === 0) {
+      throw new MendeleyException(
+        'catalog.byIdentifier requires exactly one identifier ' +
+          '(one of arxiv, doi, isbn, issn, pmid, scopus, filehash).',
+      );
+    }
+    if (present.length > 1) {
+      const names = present.map(([k]) => k).join(', ');
+      throw new MendeleyException(
+        `catalog.byIdentifier requires exactly one identifier, but received ${present.length} ` +
+          `(${names}). Identifier lookup is a single-identifier operation.`,
+      );
+    }
     const url = addQueryParams('/catalog', {
       arxiv,
       doi,
