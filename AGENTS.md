@@ -102,7 +102,7 @@
 - Runtime target is Node.js `>=22` from `package.json`; CI currently runs unit tests on Node 22 and 24.
 - There is no build step. Source files are shipped directly from `src/`, `lib/`, and `bin/`.
 - The package entry point is `src/index.js`; the executable is `bin/mendeley.js`.
-- The project intentionally keeps dependencies near zero. `open` is optional; do not add runtime dependencies unless the gain is concrete and the API surface cannot stay simple without them.
+- The project intentionally keeps dependencies at zero. Do not add runtime dependencies unless the gain is concrete and the API surface cannot stay simple without them.
 
 ## Repository Map
 
