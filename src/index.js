@@ -98,5 +98,6 @@ export { GroupMembers, Groups } from './resources/groups.js';
 export { Profiles } from './resources/profiles.js';
 export { Trash } from './resources/trash.js';
 
-// Version
-export const VERSION = '1.0.0';
+// Version — read from package.json so it stays in sync with releases (#89).
+import pkg from '../package.json' with { type: 'json' };
+export const VERSION = pkg.version;
