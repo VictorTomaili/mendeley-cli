@@ -59,6 +59,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   rejects a real catalog hit, and as a faster path for the common
   "I just searched the catalog, now add this one" workflow. (#102)
 
+### Changed
+
+- Removed the optional `open` runtime dependency and the
+  `openBrowser()` helper from `src/login.js`. The CLI's `auth login`
+  flow has always been headless (it prints the URL; it does not open
+  a browser), so the package was never actually used. `mendeley-cli`
+  is now truly zero-dependency. If you were importing `openBrowser`
+  directly from `src/login.js` (it was never exported from the SDK
+  entry point), call Node's built-in child_process spawn or instruct
+  users to open the URL manually.
+
 ## [0.2.0] - 2026-06-14
 
 ### ⚠️ Potentially breaking output change

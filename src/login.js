@@ -5,9 +5,6 @@
  *  - {@link listenForCode} - start a local HTTP server that captures the
  *    `?code=...&state=...` query string from a browser redirect and
  *    resolves with it.
- *  - {@link openBrowser} - try to open a URL in the user's default
- *    browser.  Uses the `open` package; falls back to printing the URL
- *    if the package is not available.
  */
 
 import { createServer } from 'node:http';
@@ -113,23 +110,6 @@ export function listenForCode(port = 0, expectedState) {
       });
     });
   });
-}
-
-/**
- * Try to open a URL in the user's default browser.  The `open` package
- * is loaded lazily so it's an optional dependency.
- *
- * @returns {Promise<boolean>} `true` if the browser was opened, `false`
- *   if the user has to copy the URL by hand.
- */
-export async function openBrowser(url) {
-  try {
-    const mod = await import('open');
-    await mod.default(url);
-    return true;
-  } catch {
-    return false;
-  }
 }
 
 function successPage() {

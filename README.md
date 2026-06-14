@@ -42,7 +42,7 @@ The official Mendeley SDK is Python-only and hasn't been updated in years. This 
 
 - **A shell CLI** (`mendeley`) that defaults to **JSON output** — perfect for scripting and AI agents
 - **A JavaScript library** (`import { Mendeley } from 'mendeley-cli'`) for Node.js 22+
-- **Zero dependencies** (the `open` package is optional, for browser launch)
+- **Zero dependencies** (pure Node.js, no runtime deps)
 - **PKCE auth** with automatic token refresh — log in once, stay logged in
 - **73 help pages** with examples, plus a `--skill` flag that dumps the full command surface as Markdown for LLM system prompts
 
