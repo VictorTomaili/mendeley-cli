@@ -7,6 +7,7 @@ import { pipeline } from 'node:stream/promises';
 
 import { Annotation } from './annotations.js';
 import { Color, BoundingBox, Position } from './common.js';
+import { encodePathSegment } from '../resources/base.js';
 import { SessionResponseObject } from '../response.js';
 import { parseContentDispositionFilename, safeFilename, safeJoin } from '../safe_filename.js';
 
@@ -88,7 +89,9 @@ export class File extends SessionResponseObject {
    * for a short time, so should not be cached.
    */
   async getDownloadUrl() {
-    const rsp = await this.session.get(`/files/${this.id}`, { allowRedirects: false });
+    const rsp = await this.session.get(`/files/${encodePathSegment(this.id)}`, {
+      allowRedirects: false,
+    });
     return rsp.headers.get('location');
   }
 
@@ -114,7 +117,7 @@ export class File extends SessionResponseObject {
    * are written to disk.
    */
   async download(directory) {
-    const rsp = await this.session.get(`/files/${this.id}`, { stream: true });
+    const rsp = await this.session.get(`/files/${encodePathSegment(this.id)}`, { stream: true });
     // Filename resolution: Content-Disposition header → metadata
     // `filename` → metadata `file_name` alias → id fallback (#135).
     const headerName = parseContentDispositionFilename(rsp.headers.get('content-disposition'));
@@ -131,7 +134,7 @@ export class File extends SessionResponseObject {
   }
 
   async delete() {
-    await this.session.delete(`/files/${this.id}`);
+    await this.session.delete(`/files/${encodePathSegment(this.id)}`);
   }
 
   async addStickyNote(text, x, y, page) {

@@ -15,6 +15,7 @@ import { BaseDocument, BaseBibView, BaseClientView } from './base_documents.js';
 import { formatContentDisposition } from '../safe_filename.js';
 import { File } from './files.js';
 import { guessMime } from '../mime.js';
+import { encodePathSegment } from '../resources/base.js';
 
 const BASE_FIELDS = [
   'id',
@@ -92,7 +93,7 @@ const userBibGetters = {
 
 const userMethods = {
   async update(kwargs = {}) {
-    await this.session.patch(`/documents/${this.id}`, {
+    await this.session.patch(`/documents/${encodePathSegment(this.id)}`, {
       data: JSON.stringify(formatDocArgs(kwargs)),
       headers: {
         accept: this.contentType,
@@ -104,16 +105,16 @@ const userMethods = {
     // caller cannot confirm the change from the response alone (#73).
     // Re-fetch with view=all to return a complete record.
     const params = new URLSearchParams({ view: 'all' });
-    const full = await this.session.get(`/documents/${this.id}?${params}`, {
+    const full = await this.session.get(`/documents/${encodePathSegment(this.id)}?${params}`, {
       headers: { accept: 'application/vnd.mendeley-document.1+json' },
     });
     return new UserAllDocument(this.session, await full.json());
   },
   async delete() {
-    await this.session.delete(`/documents/${this.id}`);
+    await this.session.delete(`/documents/${encodePathSegment(this.id)}`);
   },
   async moveToTrash() {
-    await this.session.post(`/documents/${this.id}/trash`);
+    await this.session.post(`/documents/${encodePathSegment(this.id)}/trash`);
     return new (this._trashedType())(this.session, this.json);
   },
   async attachFile(filePath) {
@@ -123,7 +124,7 @@ const userMethods = {
     const headers = {
       'content-disposition': formatContentDisposition(filename),
       'content-type': mime,
-      link: `<${this.session.host}/documents/${this.id}>; rel="document"`,
+      link: `<${this.session.host}/documents/${encodePathSegment(this.id)}>; rel="document"`,
       accept: File.contentType,
     };
     const rsp = await this.session.post('/files', { data, headers });
@@ -166,10 +167,10 @@ const userMethods = {
 
 const trashMethods = {
   async delete() {
-    await this.session.delete(`/trash/${this.id}`);
+    await this.session.delete(`/trash/${encodePathSegment(this.id)}`);
   },
   async restore() {
-    await this.session.post(`/trash/${this.id}/restore`);
+    await this.session.post(`/trash/${encodePathSegment(this.id)}/restore`);
     return new (this._restoredType())(this.session, this.json);
   },
 };

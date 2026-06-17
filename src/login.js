@@ -45,6 +45,10 @@ export function listenForCode(port = 0, expectedState) {
       const error = url.searchParams.get('error');
 
       if (error) {
+        if (!isExpectedState(state, _expectedState)) {
+          rejectCallback(res, stateMismatchMessage(_expectedState, state));
+          return;
+        }
         res.statusCode = 400;
         res.setHeader('content-type', 'text/html');
         res.end(errorPage(`Authentication failed: ${escapeHtml(error)}`));
@@ -64,17 +68,8 @@ export function listenForCode(port = 0, expectedState) {
           return;
         }
 
-        if (_expectedState && state !== _expectedState) {
-          res.statusCode = 400;
-          res.setHeader('content-type', 'text/html');
-          res.end(
-            errorPage(
-              `State mismatch. Expected: ${escapeHtml(_expectedState)}, got: ${escapeHtml(state || '(none)')}. ` +
-                'This may mean you visited an old login URL. Please run `mendeley auth login` again.',
-            ),
-          );
-          capturedReject(new Error('OAuth state mismatch'));
-          server.close();
+        if (!isExpectedState(state, _expectedState)) {
+          rejectCallback(res, stateMismatchMessage(_expectedState, state));
           return;
         }
 
@@ -110,6 +105,26 @@ export function listenForCode(port = 0, expectedState) {
       });
     });
   });
+}
+
+function isExpectedState(state, expectedState) {
+  return Boolean(expectedState) && state === expectedState;
+}
+
+function stateMismatchMessage(expectedState, state) {
+  if (!expectedState) {
+    return 'OAuth state is not ready yet. Please use the newest login URL from the CLI.';
+  }
+  return (
+    `State mismatch. Expected: ${escapeHtml(expectedState)}, got: ${escapeHtml(state || '(none)')}. ` +
+    'This may mean you visited an old login URL. Please use the newest login URL from the CLI.'
+  );
+}
+
+function rejectCallback(res, message) {
+  res.statusCode = 400;
+  res.setHeader('content-type', 'text/html');
+  res.end(errorPage(message));
 }
 
 function successPage() {

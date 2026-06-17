@@ -72,7 +72,13 @@ test('auth login saves tokens without printing bearer material', async () => {
   assert.doesNotMatch(result.stdout, new RegExp(ACCESS_TOKEN));
   assert.doesNotMatch(result.stdout, new RegExp(REFRESH_TOKEN));
 
-  const output = parseTrailingJson(result.stdout);
+  // #190: in JSON mode the interactive prompts (login URL, "paste URL"
+  // instructions) must go to stderr, leaving stdout as clean JSON only.
+  assert.doesNotMatch(result.stdout, /Redirect URL/);
+  assert.doesNotMatch(result.stdout, /Step 1/);
+  assert.match(result.stderr, /Redirect URL/);
+
+  const output = JSON.parse(result.stdout);
   assert.equal(output.ok, true);
   assert.equal(output.expires_in, 3600);
   assert.equal(output.token_file, tokenFile);

@@ -3,7 +3,7 @@
  */
 
 import { UserDocument } from '../models/documents.js';
-import { addQueryParams, ListResource } from './base.js';
+import { addQueryParams, encodePathSegment, ListResource } from './base.js';
 
 export class FolderDocuments extends ListResource {
   constructor(session, folderId) {
@@ -15,7 +15,7 @@ export class FolderDocuments extends ListResource {
     return this.session;
   }
   get _url() {
-    return `/folders/${this.folderId}/documents`;
+    return `/folders/${encodePathSegment(this.folderId)}/documents`;
   }
   _objType() {
     return UserDocument;
@@ -56,6 +56,6 @@ export class FolderDocuments extends ListResource {
    * @param {string} documentId
    */
   async remove(documentId) {
-    await this.session.delete(`${this._url}/${documentId}`);
+    await this.session.delete(`${this._url}/${encodePathSegment(documentId, 'documentId')}`);
   }
 }

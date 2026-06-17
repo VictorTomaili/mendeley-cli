@@ -7,6 +7,60 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Security
+
+- **Resource IDs are now URL-encoded in all path segments** (#195).
+  Previously IDs were interpolated raw into URL paths
+  (`/documents/${id}`, `/files/${id}`, `/folders/${id}`, etc.), so an
+  ID containing `/`, `?`, `#`, spaces, or `%` could change the
+  requested endpoint or query string. All model/resource/CLI paths
+  now route through a central `encodePathSegment()` helper.
+
+- **Existing credential and token files are tightened to 0o600** (#194).
+  `writePrivateJson()` now calls `chmod()` after writing so that
+  files created with broader permissions (e.g. a pre-existing
+  `credentials.json` with 0o644) are tightened to owner-only on
+  POSIX systems.
+
+- **Local OAuth callback no longer accepts the first request to the
+  port** (#187). `listenForCode()` now gates both the success (`code`)
+  and error paths on the expected `state`; a request with a missing
+  or mismatched state gets a 400 page but does **not** resolve/reject
+  the one-shot promise or close the server. Only a request carrying
+  the correct `state` completes the flow.
+
+### Fixed
+
+- **Destructive delete commands now require `--yes`** (#188).
+  `documents delete`, `files delete`, `folders delete`,
+  `annotations delete`, and `trash delete` refuse with exit code 2
+  and the standard error envelope before any network call when
+  `--yes` is not supplied. (`trash empty` already required it.)
+
+- **`auth login --format json` no longer pollutes stdout with
+  prompts** (#190). Interactive instructions (login URL, paste prompt)
+  now go to stderr in JSON mode, leaving stdout as clean JSON for
+  machine parsing. In text mode prompts stay on stdout as before.
+
+- **`auth url` / `auth login` now fail clearly when `clientId` is not
+  configured** (#197). Previously they built an authorisation URL
+  with `client_id=undefined`; now they print a helpful error pointing
+  to `mendeley auth set clientId <id>`.
+
+- **Pagination no longer silently returns empty results after a retry**
+  (#193). If the API returns an empty terminal page _twice_ while
+  still reporting `mendeley-count > 0`, the iterator now throws a
+  `MendeleyException` instead of yielding zero items and pretending
+  success.
+
+- **`files add-highlight` validates `--positions` before any network
+  call** (#191). Missing `--positions`, an empty array, or a box
+  missing `top_left`/`bottom_right`/`page` now produce a clean error
+  immediately.
+
+- **`folders update` now requires `--name`** (#192). Previously it
+  silently sent an empty PATCH.
+
 ### Documentation
 
 - The "Built for AI agents" workflow example in the README now passes
