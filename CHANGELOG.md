@@ -21,6 +21,11 @@ error: "..." }`). Rationale: LLMs and humans consume text more
 
 ### Fixed
 
+- `documents add-note` (`UserDocument.addNote()`) no longer POSTs to
+  `/annotations/` with a trailing slash. The trailing-slash regression
+  fixed in #117 only covered `File.addStickyNote()` and
+  `File.addHighlight()`; the note path was missed. (#132)
+
 - `files get`, `files download`, `files add-highlight`, and
   `files add-sticky-note` no longer report files on later pages of a
   large library as "not found". The internal `findFileById()` lookup

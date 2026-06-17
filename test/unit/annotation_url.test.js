@@ -9,6 +9,7 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
 import { File } from '../../src/models/files.js';
+import { UserDocument } from '../../src/models/documents.js';
 
 // Build a File whose session captures the request URL of every call.
 function makeFile() {
@@ -74,6 +75,44 @@ test('addHighlight does not POST to /annotations/ (trailing slash regression)', 
     [{ top_left: { x: 0, y: 0 }, bottom_right: { x: 10, y: 10 }, page: 1 }],
     {},
   );
+  const post = calls.find((c) => c.method === 'POST');
+  assert.notEqual(post.url, '/annotations/');
+  assert.ok(!/\/$/.test(post.url), `url should not end with /: ${post.url}`);
+});
+
+/* ── UserDocument.addNote (#132) ─────────────────────────────────────────── */
+
+// Build a UserDocument whose session captures the request URL.
+function makeDocument() {
+  const calls = [];
+  const session = {
+    async post(url, opts) {
+      calls.push({ method: 'POST', url });
+      const data = opts?.data ? JSON.parse(opts.data) : {};
+      // Simulate the #12 quirk: API echoes the document id back as
+      // the annotation id for type=note, triggering the follow-up GET.
+      return { json: async () => ({ id: 'doc-1', text: data.text }) };
+    },
+    async get(url) {
+      calls.push({ method: 'GET', url });
+      return { json: async () => [{ id: 'ann-NEW', text: 'my note' }] };
+    },
+  };
+  const doc = new UserDocument(session, { id: 'doc-1', title: 'T' });
+  return { doc, calls };
+}
+
+test('UserDocument.addNote POSTs to /annotations (no trailing slash) (#132)', async () => {
+  const { doc, calls } = makeDocument();
+  await doc.addNote('my note');
+  const post = calls.find((c) => c.method === 'POST');
+  assert.ok(post, 'expected a POST');
+  assert.equal(post.url, '/annotations', `expected /annotations, got ${post.url}`);
+});
+
+test('UserDocument.addNote does not POST to /annotations/ (trailing slash) (#132)', async () => {
+  const { doc, calls } = makeDocument();
+  await doc.addNote('my note');
   const post = calls.find((c) => c.method === 'POST');
   assert.notEqual(post.url, '/annotations/');
   assert.ok(!/\/$/.test(post.url), `url should not end with /: ${post.url}`);
