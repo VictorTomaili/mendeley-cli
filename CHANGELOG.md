@@ -20,6 +20,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `src/models/documents.js`) now use the new `formatContentDisposition()`
   helper. (#140)
 
+- `trash empty` without `--yes` now uses `out.fail()` instead of a raw
+  `process.exit(2)` + `process.stderr.write`. In JSON mode the refusal
+  is reported as the standard `{ "ok": false, "error": "..." }`
+  envelope; in text mode it goes to stderr as `error: ...`. Exit code
+  remains 2. This restores the output contract broken by the previous
+  direct-exit path and lets the event loop drain gracefully via the
+  `CliExitError` sentinel. (#136)
+
 - **Security:** fixed reflected cross-site scripting (XSS) in the local
   OAuth callback server. The `?error=` and `?state=` query parameters
   were interpolated raw into the HTML response page; a crafted redirect
