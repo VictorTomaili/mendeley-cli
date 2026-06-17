@@ -3,7 +3,7 @@
  */
 
 import { Group, GroupMember } from '../models/groups.js';
-import { GetByIdResource, ListResource } from './base.js';
+import { encodePathSegment, GetByIdResource, ListResource } from './base.js';
 
 export class Groups extends GetByIdResource {
   constructor(session) {
@@ -40,7 +40,7 @@ export class GroupMembers extends ListResource {
     return this.session;
   }
   get _url() {
-    return `/groups/${this.id}/members`;
+    return `/groups/${encodePathSegment(this.id)}/members`;
   }
   _objType() {
     return GroupMember;

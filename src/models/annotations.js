@@ -3,6 +3,7 @@
  */
 
 import { BoundingBox, Color, toArrow } from './common.js';
+import { encodePathSegment } from '../resources/base.js';
 import { SessionResponseObject } from '../response.js';
 
 export class Annotation extends SessionResponseObject {
@@ -63,7 +64,7 @@ export class Annotation extends SessionResponseObject {
   }
 
   async update(kwargs = {}) {
-    const rsp = await this.session.patch(`/annotations/${this.id}`, {
+    const rsp = await this.session.patch(`/annotations/${encodePathSegment(this.id)}`, {
       data: JSON.stringify(formatAnnotationArgs(kwargs)),
       headers: {
         accept: this.contentType,
@@ -74,7 +75,7 @@ export class Annotation extends SessionResponseObject {
   }
 
   async delete() {
-    await this.session.delete(`/annotations/${this.id}`);
+    await this.session.delete(`/annotations/${encodePathSegment(this.id)}`);
   }
 }
 

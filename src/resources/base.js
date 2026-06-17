@@ -2,6 +2,7 @@
  * Base classes for the various resources exposed by the Mendeley API.
  */
 
+import { MendeleyException } from '../exception.js';
 import { Page } from '../pagination.js';
 import { LazyResponseObject } from '../response.js';
 
@@ -33,7 +34,7 @@ export class GetByIdResource extends BaseResource {
    */
   async get(id, kwargs = {}) {
     const objType = this._objType(kwargs);
-    const url = addQueryParams(`${this._url}/${id}`, kwargs);
+    const url = addQueryParams(`${this._url}/${encodePathSegment(id)}`, kwargs);
     const rsp = await this._session.get(url, {
       headers: { accept: objType.contentType },
     });
@@ -84,15 +85,18 @@ export class ListResource extends BaseResource {
       // the result should be non-empty — either the mendeley-count
       // header reported > 0, or the header was absent (can't tell).
       // Skip the retry when the API explicitly reported count=0 (#94).
-      if (
-        items.length === 0 &&
-        !page._links.next &&
-        !retried &&
-        (page.count > 0 || !page._countHeaderPresent)
-      ) {
-        retried = true;
-        page = await this.list(kwargs);
-        continue;
+      if (items.length === 0 && !page._links.next) {
+        if (!retried && (page.count > 0 || !page._countHeaderPresent)) {
+          retried = true;
+          page = await this.list(kwargs);
+          continue;
+        }
+        if (retried && page._countHeaderPresent && page.count > 0) {
+          throw new MendeleyException(
+            `Pagination returned an empty terminal page twice despite ` +
+              `mendeley-count=${page.count}; refusing to silently drop results.`,
+          );
+        }
       }
       for (const item of items) yield item;
       page = await page.next_page;
@@ -108,6 +112,24 @@ export class ListResource extends BaseResource {
     for await (const item of this.iter(kwargs)) out.push(item);
     return out;
   }
+}
+
+/**
+ * Encode one URL path segment for resource ids.
+ *
+ * IDs can come from user input or API responses.  Never interpolate
+ * them into paths raw: `/`, `?`, `#`, spaces, and `%` can otherwise
+ * change the requested endpoint or query string.
+ *
+ * @param {unknown} value
+ * @param {string} [name]
+ * @returns {string}
+ */
+export function encodePathSegment(value, name = 'id') {
+  if (value === undefined || value === null || value === '') {
+    throw new Error(`Missing URL path segment: ${name}`);
+  }
+  return encodeURIComponent(String(value));
 }
 
 /**

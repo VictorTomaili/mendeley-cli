@@ -6,6 +6,7 @@
  * agent that wants to keep a tidy library needs them.
  */
 
+import { encodePathSegment } from '../resources/base.js';
 import { SessionResponseObject } from '../response.js';
 
 export class Folder extends SessionResponseObject {
@@ -38,7 +39,7 @@ export class Folder extends SessionResponseObject {
   }
 
   async update(kwargs) {
-    const rsp = await this.session.patch(`/folders/${this.id}`, {
+    const rsp = await this.session.patch(`/folders/${encodePathSegment(this.id)}`, {
       data: JSON.stringify(kwargs),
       headers: {
         accept: this.contentType,
@@ -49,6 +50,6 @@ export class Folder extends SessionResponseObject {
   }
 
   async delete() {
-    await this.session.delete(`/folders/${this.id}`);
+    await this.session.delete(`/folders/${encodePathSegment(this.id)}`);
   }
 }

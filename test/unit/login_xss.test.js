@@ -29,7 +29,12 @@ test('login callback escapes the `error` query param (no reflected XSS)', async 
   server.captured.catch(() => {});
   try {
     const payload = '<script>alert(1)</script>';
-    const { body } = await hit(server.port, `/?error=${encodeURIComponent(payload)}`);
+    // Include the expected state so the callback reaches the error path
+    // rather than the state-mismatch path.
+    const { body } = await hit(
+      server.port,
+      `/?state=EXPECTED&error=${encodeURIComponent(payload)}`,
+    );
     // The raw payload must NOT appear verbatim in the HTML.
     assert.ok(!body.includes(payload), `raw <script> payload leaked into page:\n${body}`);
     // The escaped form must be present instead.
@@ -60,7 +65,7 @@ test('login callback still renders a readable (escaped) error message', async ()
   const server = await listenForCode(0, 'EXPECTED');
   server.captured.catch(() => {});
   try {
-    const { body } = await hit(server.port, '/?error=access_denied');
+    const { body } = await hit(server.port, '/?state=EXPECTED&error=access_denied');
     // Plain ASCII is unchanged; only HTML-special chars are escaped.
     assert.ok(body.includes('access_denied'), `readable message missing:\n${body}`);
   } finally {
