@@ -21,6 +21,13 @@ error: "..." }`). Rationale: LLMs and humans consume text more
 
 ### Fixed
 
+- `documents search` / `advanced-search`: documented that the
+  `/search/documents` endpoint is live and functional (inherited from
+  the official Mendeley Python SDK; confirmed by real API consumers),
+  even though it is absent from the static OpenAPI reference. No
+  behaviour change; added provenance comments and URL-construction
+  regression tests. (#134)
+
 - `library stats --limit` now genuinely caps the number of documents
   scanned. Previously `--limit` was used only as the page size and
   `collect()` drained every page, so a request to sample a large

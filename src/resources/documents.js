@@ -168,8 +168,20 @@ function parsePersonString(s, fieldName) {
 }
 
 /**
- * Search results for `/search/documents`.  Paginates like other list
- * resources, but the URL is fixed.
+ * Search results for `/search/documents`.
+ *
+ * `GET /search/documents` searches the authenticated user's library
+ * (and is therefore user-scoped only; the resource rejects a group
+ * scope). It paginates like other list resources, but the URL is
+ * fixed and carries the query/field params.
+ *
+ * NOTE (#134): this endpoint is **live and functional** but is not
+ * listed in the static OpenAPI reference at api.mendeley.com/apidocs.
+ * It is inherited from the official Mendeley Python SDK and is
+ * confirmed working by real API consumers — e.g.
+ * `GET https://api.mendeley.com/search/documents?view=all&limit=25&title=...`
+ * (see Stack Overflow q/70511071, 2021). Source of truth: the
+ * official Python SDK + live API behaviour, not the static docs.
  */
 export class DocumentsSearch extends ListResource {
   constructor(session, params) {
