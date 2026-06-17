@@ -28,6 +28,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   direct-exit path and lets the event loop drain gracefully via the
   `CliExitError` sentinel. (#136)
 
+- `catalog lookup` help now documents the correct **0–100** confidence
+  score scale (the API defines 100 as very confident). Previously the
+  help said "between 0 and 1", which led automation that thresholds
+  lookup quality to use the wrong scale. (#138)
+
 - **Security:** fixed reflected cross-site scripting (XSS) in the local
   OAuth callback server. The `?error=` and `?state=` query parameters
   were interpolated raw into the HTML response page; a crafted redirect
