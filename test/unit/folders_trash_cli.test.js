@@ -99,6 +99,32 @@ test('trash empty does not send an invalid view param (#4)', async () => {
   assert.deepEqual(out, { ok: true, deleted: 2 });
 });
 
+test('trash empty without --yes returns the JSON error envelope (#136)', async () => {
+  // No mock needed: refusal must happen before any network call.
+  const { env } = createEnv('http://api.test.invalid');
+  const result = await runCli(['--format', 'json', 'trash', 'empty'], { env });
+
+  // Exit code 2 distinguishes "refused" from a generic error (#136).
+  assert.equal(result.code, 2, `expected exit 2, got ${result.code}`);
+  // JSON-mode error envelope: { ok: false, error: ... }
+  const out = JSON.parse(result.stdout);
+  assert.equal(out.ok, false);
+  assert.match(out.error, /Refusing to empty the trash/);
+  assert.match(out.error, /--yes/);
+  // No network call should have been made.
+});
+
+test('trash empty without --yes prints to stderr in text mode (#136)', async () => {
+  const { env } = createEnv('http://api.test.invalid');
+  const result = await runCli(['trash', 'empty'], { env });
+
+  assert.equal(result.code, 2);
+  // In text mode the error goes to stderr as `error: ...`.
+  assert.match(result.stderr, /^error: Refusing to empty the trash/);
+  // stdout must be empty in text-error mode.
+  assert.equal(result.stdout, '');
+});
+
 function createEnv(host) {
   const root = mkdtempSync(join(tmpdir(), 'mendeley-folders-cli-'));
   const home = join(root, 'home');
