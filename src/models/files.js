@@ -30,6 +30,60 @@ export class File extends SessionResponseObject {
   }
 
   /**
+   * Map older/alternate API field names onto the canonical names
+   * returned by `fields()`. The static API reference
+   * (dev.mendeley.com/methods/) documents file metadata under a
+   * nested `content_details` object and uses different names
+   * (`file_name`, `mime_type`, `sha256_hash`, `created_date`); the
+   * live API historically returns the flat shape with the canonical
+   * names. This map makes File.toJSON() and the download-filename
+   * fallback resilient to either shape (#135).
+   */
+  static _aliases() {
+    return {
+      filename: ['file_name'],
+      content_type: ['mime_type'],
+      filehash: ['sha256_hash'],
+      created: ['created_date'],
+    };
+  }
+
+  /**
+   * Human-friendly filename for display / saving, with alias fallback
+   * (#135). Returns the canonical `filename` if set, otherwise the
+   * `file_name` alias. Does not consult Content-Disposition — use
+   * `download()` for the full resolution chain.
+   */
+  get displayName() {
+    return this.json.filename ?? this.json.file_name ?? null;
+  }
+
+  /**
+   * Plain-object view. Mirrors the base behaviour (read each
+   * `fields()` entry from `this.json`) but also consults the alias
+   * table so a response that uses the documented-but-unused name
+   * (`file_name` for `filename`, etc.) still round-trips to the
+   * canonical field. Canonical name wins when both are present.
+   */
+  toJSON() {
+    const out = {};
+    for (const name of this._fieldNames()) {
+      if (this.json[name] !== undefined) {
+        out[name] = this.json[name];
+        continue;
+      }
+      const aliases = this.constructor._aliases()[name] || [];
+      for (const alias of aliases) {
+        if (this.json[alias] !== undefined) {
+          out[name] = this.json[alias];
+          break;
+        }
+      }
+    }
+    return out;
+  }
+
+  /**
    * The URL at which the file can be downloaded.  This URL is only valid
    * for a short time, so should not be cached.
    */
@@ -61,8 +115,11 @@ export class File extends SessionResponseObject {
    */
   async download(directory) {
     const rsp = await this.session.get(`/files/${this.id}`, { stream: true });
+    // Filename resolution: Content-Disposition header → metadata
+    // `filename` → metadata `file_name` alias → id fallback (#135).
     const headerName = parseContentDispositionFilename(rsp.headers.get('content-disposition'));
-    const rawName = headerName || this.json.filename || `file-${this.id}`;
+    const metaName = this.json.filename ?? this.json.file_name;
+    const rawName = headerName || metaName || `file-${this.id}`;
     const filename = safeFilename(rawName);
     const path = safeJoin(directory, filename);
 

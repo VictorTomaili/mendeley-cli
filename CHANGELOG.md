@@ -39,6 +39,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   then hit 403 scope errors for user-library resources (documents,
   files, folders, annotations, profiles). (#137)
 
+- `File` model: the field-name comment in tests/docs previously
+  claimed the static API reference at `dev.mendeley.com/methods/`
+  confirms the flat `filename`/`content_type` shape. The static docs
+  actually describe a nested `content_details` object with different
+  names (`sha256_hash`, `created_date`). The live API (confirmed by
+  production testing) returns the flat shape, so the code keeps the
+  flat canonical fields. As a resilience measure, `File.toJSON()` and
+  the download-filename fallback now also recognise the
+  documented-but-unused alternates (`file_name`, `mime_type`,
+  `sha256_hash`, `created_date`) and map them onto the canonical
+  names — the canonical name always wins when both are present.
+  Comment updated to record the true source of truth. (#135)
+
 - **Security:** fixed reflected cross-site scripting (XSS) in the local
   OAuth callback server. The `?error=` and `?state=` query parameters
   were interpolated raw into the HTML response page; a crafted redirect
