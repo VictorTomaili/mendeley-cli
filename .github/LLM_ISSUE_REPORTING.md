@@ -133,7 +133,7 @@ triage metadata.
 gh issue create \
   --repo VictorTomaili/mendeley-cli \
   --title "[Bug] <one-line summary>" \
-  --label "bug,needs-triage" \
+  --label "bug" \
   --body "$(cat <<'EOF'
 ## mendeley-cli version
 0.2.0
@@ -179,7 +179,7 @@ EOF
 gh issue create \
   --repo VictorTomaili/mendeley-cli \
   --title "[Enhancement] <capability>" \
-  --label "enhancement,needs-triage" \
+  --label "enhancement" \
   --body "$(cat <<'EOF'
 ## Problem
 <What workflow is currently awkward or missing?>
@@ -196,9 +196,9 @@ EOF
 )"
 ````
 
-> **Note on labels:** `bug,needs-triage` / `enhancement,needs-triage` are the
-> labels the templates apply. If your `gh` token lacks permission to set
-> labels, omit `--label`; a maintainer will add them during triage.
+> **Note on labels:** the templates apply `bug` or `enhancement`. If your
+> `gh` token lacks permission to set labels, omit `--label`; a maintainer
+> will add priority labels during triage.
 
 ---
 
@@ -226,8 +226,9 @@ output into a report. When in doubt, redact.
 
 ## 6. After you file
 
-- Reports get the `needs-triage` label automatically. A maintainer will label
-  and prioritise. There is **no SLA** — this is a volunteer project.
+- Reports get the `bug` or `enhancement` label automatically. A maintainer
+  will add priority labels and prioritise. There is **no SLA** — this is a
+  volunteer project.
 - If you can also fix it, say so in the report and open a PR referencing the
   issue number (e.g. `Fixes #123`). Follow the
   [6-phase workflow in AGENTS.md](../AGENTS.md).
@@ -239,8 +240,8 @@ output into a report. When in doubt, redact.
 ## 7. Quick reference
 
 ```text
-Bug          → /issues/new?template=bug.yml        labels: bug,needs-triage
-Enhancement  → /issues/new?template=feature.yml     labels: enhancement,needs-triage
+Bug          → /issues/new?template=bug.yml        labels: bug
+Enhancement  → /issues/new?template=feature.yml     labels: enhancement
 Security     → /security/advisories/new             (PRIVATE — never public)
 Question     → /discussions                         (ideas, not concrete requests)
 ```

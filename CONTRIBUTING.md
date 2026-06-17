@@ -76,6 +76,11 @@ mendeley --skill > MENDELEY_SKILL.md   # if you have a global link
 `lib/cli/commands/` — each subcommand is one file exporting a default
 `{ name, description, options, run }` object.
 
+Global flags (`--format`, `--quiet`, `--all`) work on every command.
+The default output format is **text** (key-value); JSON is opt-in via
+`--format json`. If you add a new boolean flag (no value), register it
+in `BOOLEAN_FLAGS` in `lib/cli/argparse.js`.
+
 ## Submitting issues
 
 - **Bugs and feature requests**: use the
