@@ -21,8 +21,8 @@ describe('Output', () => {
     assert.throws(() => new Output(''), /unknown --format/);
   });
 
-  it('defaults to json', () => {
+  it('defaults to text', () => {
     const out = new Output();
-    assert.equal(out.format, 'json');
+    assert.equal(out.format, 'text');
   });
 });

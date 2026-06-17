@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **BREAKING:** the default output format is now `text` (LLM/human-
+  friendly key-value), changed from `json`. JSON remains fully
+  available via `--format json`; `tsv` and `ids` are unchanged.
+  Scripts that pipe the default output through `jq` must now pass
+  `--format json`. Error output in text mode goes to stderr as
+  `error: <message>` (in JSON mode it remains `{ ok: false,
+error: "..." }`). Rationale: LLMs and humans consume text more
+  naturally than JSON; machine consumers can opt back in with a
+  single flag.
+
 ### Fixed
 
 - Document models now expose every field documented in the

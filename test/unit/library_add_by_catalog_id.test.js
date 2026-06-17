@@ -173,7 +173,10 @@ test('library add-by-catalog-id 404 on the catalog surfaces a clear error (#102)
   await new Promise((r) => server.listen(19802, '127.0.0.1', r));
   try {
     const env = createEnv({ host: 'http://127.0.0.1:19802' });
-    const result = await runCli(['library', 'add-by-catalog-id', 'cat-missing'], { env });
+    const result = await runCli(
+      ['--format', 'json', 'library', 'add-by-catalog-id', 'cat-missing'],
+      { env },
+    );
     assert.equal(result.code, 1, `expected exit 1, got ${result.code}`);
     assert.match(result.stdout, /status: 404/);
   } finally {

@@ -146,7 +146,9 @@ test('catalog lookup with 404 on 2nd request: no crash, clean exit 1 (#90)', asy
       MENDELEY_TOKEN_FILE: tokenFile,
     };
 
-    const result = await runCli(['catalog', 'lookup', '--title', 'test'], { env });
+    const result = await runCli(['--format', 'json', 'catalog', 'lookup', '--title', 'test'], {
+      env,
+    });
 
     // Must exit 1 (not 127, not 0).
     assert.equal(result.code, 1, `expected exit 1, got ${result.code}`);

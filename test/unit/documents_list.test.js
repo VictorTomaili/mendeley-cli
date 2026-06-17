@@ -32,7 +32,7 @@ test('documents list --all traverses all pages (#6)', async () => {
   servers.push(server);
   const { env } = createEnv(host);
 
-  const result = await runCli(['documents', 'list', '--all'], { env });
+  const result = await runCli(['--format', 'json', 'documents', 'list', '--all'], { env });
 
   assert.equal(result.code, 0, result.stderr || result.stdout);
   // The output must be the standard { count, items } envelope (#17).
