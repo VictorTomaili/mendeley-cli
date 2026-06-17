@@ -150,6 +150,7 @@ Local note: if the environment routes `npm` through another package manager and 
 - CLI errors in text mode are printed to stderr as `error: <message>`;
   in JSON mode they are objects shaped like `{ "ok": false, "error": "..." }`.
 - Supported output formats are exactly `text`, `json`, `tsv`, and `ids` unless the request explicitly changes the contract.
+- Global flags available on every command: `--format <fmt>` (output format), `--quiet` (suppress non-essential output), `--all` (fetch every page on list commands), `--skill` (render a skill). Document these in help where relevant.
 - Every new command or option needs help text and at least one concrete example.
 - If a new boolean flag has no value, add it to `BOOLEAN_FLAGS` in `lib/cli/argparse.js`; otherwise the parser may consume the next token as its value.
 - Preserve the top-level `whoami` alias unless the user explicitly removes it.

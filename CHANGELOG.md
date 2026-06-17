@@ -1,33 +1,55 @@
-# Changelog
-
-All notable changes to this project will be documented in this file.
-
-The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
-and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
-
 ## [Unreleased]
 
-### Security
+### Added
 
-- **Resource IDs are now URL-encoded in all path segments** (#195).
-  Previously IDs were interpolated raw into URL paths
-  (`/documents/${id}`, `/files/${id}`, `/folders/${id}`, etc.), so an
-  ID containing `/`, `?`, `#`, spaces, or `%` could change the
-  requested endpoint or query string. All model/resource/CLI paths
-  now route through a central `encodePathSegment()` helper.
+- `GET /deleted_documents` is now exposed: a `DeletedDocument` model,
+  a `DeletedDocuments` resource (`session.deletedDocuments` /
+  `session.groupDeletedDocuments(id)`), a `documents deleted` CLI
+  command, and SDK exports. This is the incremental-sync primitive —
+  it returns the ids of permanently deleted documents (with
+  `--since <iso>` and `--group <id>` filters). Part of #133; the
+  remaining endpoints (file-link upload, `PATCH /profiles/me` — see
+  #38) are deferred.
 
-- **Existing credential and token files are tightened to 0o600** (#194).
-  `writePrivateJson()` now calls `chmod()` after writing so that
-  files created with broader permissions (e.g. a pre-existing
-  `credentials.json` with 0o644) are tightened to owner-only on
-  POSIX systems.
+- `mendeley library add-by-catalog-id <id>` adds a document to the
+  user library directly from a catalog id (e.g. one returned by
+  `mendeley catalog search`), without going through a DOI/arXiv
+  lookup. Useful as a fallback when the identifier-lookup path
+  rejects a real catalog hit, and as a faster path for the common
+  "I just searched the catalog, now add this one" workflow. (#102)
 
-- **Local OAuth callback no longer accepts the first request to the
-  port** (#187). `listenForCode()` now gates both the success (`code`)
-  and error paths on the expected `state`; a request with a missing
-  or mismatched state gets a 400 page but does **not** resolve/reject
-  the one-shot promise or close the server. Only a request carrying
-  the correct `state` completes the flow.
+### Changed
+
+- **BREAKING:** the default output format is now `text` (LLM/human-
+  friendly key-value), changed from `json`. JSON remains fully
+  available via `--format json`; `tsv` and `ids` are unchanged.
+  Scripts that pipe the default output through `jq` must now pass
+  `--format json`. Error output in text mode goes to stderr as
+  `error: <message>` (in JSON mode it remains `{ ok: false,
+error: "..." }`). Rationale: LLMs and humans consume text more
+  naturally than JSON; machine consumers can opt back in with a
+  single flag.
+
+- Removed the optional `open` runtime dependency and the
+  `openBrowser()` helper from `src/login.js`. The CLI's `auth login`
+  flow has always been headless (it prints the URL; it does not open
+  a browser), so the package was never actually used. `mendeley-cli`
+  is now truly zero-dependency. If you were importing `openBrowser`
+  directly from `src/login.js` (it was never exported from the SDK
+  entry point), call Node's built-in child_process spawn or instruct
+  users to open the URL manually.
+- **Documented the Windows `.CMD` shim workaround** (#105).
+  `npm install -g mendeley-cli` (or `pnpm add -g`) installs the
+  `mendeley` command as a `mendeley.CMD` shim on Windows. Windows'
+  `CreateProcess` (used by Python's `subprocess.run`, Node's
+  `child_process.spawn`, and most other non-shell callers) does not
+  auto-execute `.CMD` files, so a bare call like
+  `subprocess.run(["mendeley", "--version"])` fails with
+  `FileNotFoundError: [WinError 2]`. The README now has a
+  "Calling `mendeley` from another language on Windows" section
+  with three workarounds (`shutil.which("mendeley.cmd")`,
+  `shell=True`, or calling `node` on `bin/mendeley.js` directly),
+  and `mendeley --help` includes a one-line pointer.
 
 ### Fixed
 
@@ -60,16 +82,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **`folders update` now requires `--name`** (#192). Previously it
   silently sent an empty PATCH.
-
-### Documentation
-
-- The "Built for AI agents" workflow example in the README now passes
-  `--format json` on the `catalog get` and `library add-by-doi` commands
-  whose sample output is JSON. The CLI defaults to text output, so without
-  the flag those commands print key-value text, not the `{ ... }` JSON the
-  example showed. (#173)
-
-### Fixed
 
 - Upload `Content-Disposition` headers are now standards-compliant
   (RFC 6266 + RFC 5987): a quoted ASCII `filename="..."` fallback plus
@@ -129,31 +141,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Security:** the CI workflow jobs now declare least-privilege
   `permissions: contents: read`, removing the default broad token.
   (CodeQL `actions/missing-workflow-permissions`.)
-
-### Changed
-
-- **BREAKING:** the default output format is now `text` (LLM/human-
-  friendly key-value), changed from `json`. JSON remains fully
-  available via `--format json`; `tsv` and `ids` are unchanged.
-  Scripts that pipe the default output through `jq` must now pass
-  `--format json`. Error output in text mode goes to stderr as
-  `error: <message>` (in JSON mode it remains `{ ok: false,
-error: "..." }`). Rationale: LLMs and humans consume text more
-  naturally than JSON; machine consumers can opt back in with a
-  single flag.
-
-### Added
-
-- `GET /deleted_documents` is now exposed: a `DeletedDocument` model,
-  a `DeletedDocuments` resource (`session.deletedDocuments` /
-  `session.groupDeletedDocuments(id)`), a `documents deleted` CLI
-  command, and SDK exports. This is the incremental-sync primitive —
-  it returns the ids of permanently deleted documents (with
-  `--since <iso>` and `--group <id>` filters). Part of #133; the
-  remaining endpoints (file-link upload, `PATCH /profiles/me` — see
-  #38) are deferred.
-
-### Fixed
 
 - `USER_AGENT` no longer hard-codes a stale `mendeley-cli/1.0.0`.
   It is now built from the package version (`mendeley-cli/<version>
@@ -324,37 +311,35 @@ library stat` suggests `stats`; `mendeley library by-identifier`
     (`title`, `type`, `authors`, `editors`, `identifiers`, `tags`,
     ...) and shows an `authors` example.
 
-### Added
+### Security
 
-- `mendeley library add-by-catalog-id <id>` adds a document to the
-  user library directly from a catalog id (e.g. one returned by
-  `mendeley catalog search`), without going through a DOI/arXiv
-  lookup. Useful as a fallback when the identifier-lookup path
-  rejects a real catalog hit, and as a faster path for the common
-  "I just searched the catalog, now add this one" workflow. (#102)
+- **Resource IDs are now URL-encoded in all path segments** (#195).
+  Previously IDs were interpolated raw into URL paths
+  (`/documents/${id}`, `/files/${id}`, `/folders/${id}`, etc.), so an
+  ID containing `/`, `?`, `#`, spaces, or `%` could change the
+  requested endpoint or query string. All model/resource/CLI paths
+  now route through a central `encodePathSegment()` helper.
 
-### Changed
+- **Existing credential and token files are tightened to 0o600** (#194).
+  `writePrivateJson()` now calls `chmod()` after writing so that
+  files created with broader permissions (e.g. a pre-existing
+  `credentials.json` with 0o644) are tightened to owner-only on
+  POSIX systems.
 
-- Removed the optional `open` runtime dependency and the
-  `openBrowser()` helper from `src/login.js`. The CLI's `auth login`
-  flow has always been headless (it prints the URL; it does not open
-  a browser), so the package was never actually used. `mendeley-cli`
-  is now truly zero-dependency. If you were importing `openBrowser`
-  directly from `src/login.js` (it was never exported from the SDK
-  entry point), call Node's built-in child_process spawn or instruct
-  users to open the URL manually.
-- **Documented the Windows `.CMD` shim workaround** (#105).
-  `npm install -g mendeley-cli` (or `pnpm add -g`) installs the
-  `mendeley` command as a `mendeley.CMD` shim on Windows. Windows'
-  `CreateProcess` (used by Python's `subprocess.run`, Node's
-  `child_process.spawn`, and most other non-shell callers) does not
-  auto-execute `.CMD` files, so a bare call like
-  `subprocess.run(["mendeley", "--version"])` fails with
-  `FileNotFoundError: [WinError 2]`. The README now has a
-  "Calling `mendeley` from another language on Windows" section
-  with three workarounds (`shutil.which("mendeley.cmd")`,
-  `shell=True`, or calling `node` on `bin/mendeley.js` directly),
-  and `mendeley --help` includes a one-line pointer.
+- **Local OAuth callback no longer accepts the first request to the
+  port** (#187). `listenForCode()` now gates both the success (`code`)
+  and error paths on the expected `state`; a request with a missing
+  or mismatched state gets a 400 page but does **not** resolve/reject
+  the one-shot promise or close the server. Only a request carrying
+  the correct `state` completes the flow.
+
+### Documentation
+
+- The "Built for AI agents" workflow example in the README now passes
+  `--format json` on the `catalog get` and `library add-by-doi` commands
+  whose sample output is JSON. The CLI defaults to text output, so without
+  the flag those commands print key-value text, not the `{ ... }` JSON the
+  example showed. (#173)
 
 ## [0.2.0] - 2026-06-14
 

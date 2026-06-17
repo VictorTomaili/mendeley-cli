@@ -6,7 +6,6 @@
 
 [![Node.js >= 22](https://img.shields.io/badge/node-%3E%3D22-339933?logo=node.js&logoColor=white)](https://nodejs.org/)
 [![License: Apache-2.0](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
-[![Tests: 51 passing](https://img.shields.io/badge/tests-51%20passing-brightgreen)](test/)
 
 _Query 100 M+ academic papers, manage your library, export BibTeX — from the terminal._
 
@@ -246,7 +245,9 @@ mendeley annotations update <id> --data '{"text":"updated"}'
 mendeley annotations delete <id>
 
 mendeley trash list
+mendeley trash get <id>
 mendeley trash restore <id>
+mendeley trash delete <id> --yes
 mendeley trash empty --yes
 
 mendeley profile me
@@ -353,7 +354,7 @@ cd mendeley-cli
 npm install
 npm link          # install global 'mendeley' command (symlink — edits are live)
 
-npm test          # run all 51 tests
+npm test          # run the full test suite (unit + integration)
 npm run test:unit
 npm run test:integration
 ```
@@ -374,7 +375,7 @@ src/                    JavaScript SDK
   models/               JSON model classes with lazy fields
   pagination.js         Page iterator
   response.js           ResponseObject, LazyResponseObject
-test/                   51 tests (unit + integration)
+test/                   unit + integration tests
 ```
 
 ## Security
