@@ -4,9 +4,10 @@
 
 - `npm install mendeley-cli` now prints a friendly postinstall
   announcement with the installed version, the **unofficial**
-  disclaimer, quick-start commands, and links. The message lives in
-  `lib/postinstall.js` (exported `postinstallMessage()` for testing);
-  it never throws, so a failure cannot break the install.
+  disclaimer, quick-start commands, a GitHub star request, and
+  links. The message lives in `lib/postinstall.js` (exported
+  `postinstallMessage()` for testing); it never throws, so a failure
+  cannot break the install.
 
 ## [0.4.0] - 2026-06-18
 

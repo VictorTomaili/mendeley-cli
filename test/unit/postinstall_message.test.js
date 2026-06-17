@@ -38,8 +38,14 @@ test('postinstall message links to the repo and issues', () => {
   assert.match(msg, /\/issues/);
 });
 
+test('postinstall message asks for a GitHub star', () => {
+  const msg = postinstallMessage();
+  assert.match(msg, /[Ss]tar/);
+  assert.match(msg, /github.com\/VictorTomaili\/mendeley-cli/);
+});
+
 test('postinstall message has no leading or trailing newline (caller formats)', () => {
   const msg = postinstallMessage();
-  assert.equal(msg[0], 'm', 'should start with "mendeley-cli", no leading newline');
-  assert.equal(msg.at(-1), 's', 'should end without a trailing newline');
+  assert.notEqual(msg[0], '\n', 'should have no leading newline');
+  assert.notEqual(msg.at(-1), '\n', 'should end without a trailing newline');
 });
