@@ -27,9 +27,11 @@ test('VERSION is not the stale 1.0.0 (#89)', () => {
 });
 
 test('USER_AGENT embeds the package version (#139)', () => {
-  assert.match(
-    USER_AGENT,
-    new RegExp(`mendeley-cli/${pkg.version.replace(/\./g, '\\.')} `),
+  // Use a plain substring check rather than a RegExp built from the
+  // version string, which CodeQL flags as unsafe regex construction
+  // (dynamic input not escaped).
+  assert.ok(
+    USER_AGENT.includes(`mendeley-cli/${pkg.version} `),
     `USER_AGENT must embed package.json version (${pkg.version}); got ${USER_AGENT}`,
   );
 });
