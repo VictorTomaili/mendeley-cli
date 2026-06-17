@@ -24,7 +24,8 @@
     "test:integration": "node --test test/integration/*.test.js",
     "cli": "node bin/mendeley.js",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "postinstall": "node lib/postinstall.js"
   },
   "engines": {
     "node": ">=22.0.0"
