@@ -47,7 +47,7 @@ export function listenForCode(port = 0, expectedState) {
       if (error) {
         res.statusCode = 400;
         res.setHeader('content-type', 'text/html');
-        res.end(errorPage(`Authentication failed: ${error}`));
+        res.end(errorPage(`Authentication failed: ${escapeHtml(error)}`));
         capturedReject(new Error(`OAuth error: ${error}`));
         server.close();
         return;
@@ -69,7 +69,7 @@ export function listenForCode(port = 0, expectedState) {
           res.setHeader('content-type', 'text/html');
           res.end(
             errorPage(
-              `State mismatch. Expected: ${_expectedState}, got: ${state || '(none)'}. ` +
+              `State mismatch. Expected: ${escapeHtml(_expectedState)}, got: ${escapeHtml(state || '(none)')}. ` +
                 'This may mean you visited an old login URL. Please run `mendeley auth login` again.',
             ),
           );
@@ -127,4 +127,32 @@ function errorPage(message) {
 <body style="font-family: system-ui, sans-serif; padding: 2em; text-align: center;">
 <h1 style="color:#c33;">${message}</h1>
 </body></html>`;
+}
+
+/**
+ * Escape HTML-special characters for safe interpolation into the
+ * callback pages. Prevents reflected XSS when an attacker-controlled
+ * value (e.g. a crafted `?error=` or `?state=` query param) is echoed
+ * back to the browser.
+ *
+ * @param {string} s
+ * @returns {string}
+ */
+function escapeHtml(s) {
+  return String(s).replace(/[&<>"']/g, (ch) => {
+    switch (ch) {
+      case '&':
+        return '&amp;';
+      case '<':
+        return '&lt;';
+      case '>':
+        return '&gt;';
+      case '"':
+        return '&quot;';
+      case "'":
+        return '&#39;';
+      default:
+        return ch;
+    }
+  });
 }

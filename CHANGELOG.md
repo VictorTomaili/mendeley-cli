@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- **Security:** fixed reflected cross-site scripting (XSS) in the local
+  OAuth callback server. The `?error=` and `?state=` query parameters
+  were interpolated raw into the HTML response page; a crafted redirect
+  could execute attacker-controlled script in the victim's browser.
+  All echoed values are now HTML-escaped. (CodeQL `js/reflected-xss`,
+  high severity.)
+
+- **Security:** the CLI command-name placeholder parser no longer uses
+  character-slicing to extract `<arg>` / `[arg]` names; it now reads the
+  regex capture groups directly. (CodeQL
+  `js/incomplete-multi-character-sanitization`.)
+
+- **Security:** the CI workflow jobs now declare least-privilege
+  `permissions: contents: read`, removing the default broad token.
+  (CodeQL `actions/missing-workflow-permissions`.)
+
 ### Changed
 
 - **BREAKING:** the default output format is now `text` (LLM/human-
