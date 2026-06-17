@@ -9,6 +9,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- Upload `Content-Disposition` headers are now standards-compliant
+  (RFC 6266 + RFC 5987): a quoted ASCII `filename="..."` fallback plus
+  a UTF-8 percent-encoded `filename*=UTF-8''...` for non-ASCII / spaces
+  / semicolons / quotes. Previously the header was unquoted
+  (`attachment; filename=<raw>`), so filenames with spaces, semicolons,
+  quotes, or non-ASCII characters could be parsed incorrectly by
+  servers. Both upload sites (`createFromFile` in
+  `src/resources/documents.js` and `attachFile` in
+  `src/models/documents.js`) now use the new `formatContentDisposition()`
+  helper. (#140)
+
 - **Security:** fixed reflected cross-site scripting (XSS) in the local
   OAuth callback server. The `?error=` and `?state=` query parameters
   were interpolated raw into the HTML response page; a crafted redirect
