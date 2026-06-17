@@ -7,6 +7,7 @@ import { MendeleyApiException, MendeleyException } from './exception.js';
 import { retryWithBackoff } from './retry.js';
 import { Annotations } from './resources/annotations.js';
 import { Catalog } from './resources/catalog.js';
+import { DeletedDocuments } from './resources/deleted_documents.js';
 import { Documents } from './resources/documents.js';
 import { Files } from './resources/files.js';
 import { Folders } from './resources/folders.js';
@@ -36,6 +37,7 @@ export class MendeleySession {
 
     this.annotations = new Annotations(this);
     this.catalog = new Catalog(this);
+    this.deletedDocuments = new DeletedDocuments(this);
     this.documents = new Documents(this, null);
     this.files = new Files(this);
     this.folders = new Folders(this);
@@ -67,6 +69,9 @@ export class MendeleySession {
   }
   groupFiles(groupId) {
     return new Files(this, { groupId });
+  }
+  groupDeletedDocuments(groupId) {
+    return new DeletedDocuments(this, groupId);
   }
   documentFiles(documentId) {
     return new Files(this, { documentId });

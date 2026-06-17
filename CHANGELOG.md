@@ -19,6 +19,17 @@ error: "..." }`). Rationale: LLMs and humans consume text more
   naturally than JSON; machine consumers can opt back in with a
   single flag.
 
+### Added
+
+- `GET /deleted_documents` is now exposed: a `DeletedDocument` model,
+  a `DeletedDocuments` resource (`session.deletedDocuments` /
+  `session.groupDeletedDocuments(id)`), a `documents deleted` CLI
+  command, and SDK exports. This is the incremental-sync primitive —
+  it returns the ids of permanently deleted documents (with
+  `--since <iso>` and `--group <id>` filters). Part of #133; the
+  remaining endpoints (file-link upload, `PATCH /profiles/me` — see
+  #38) are deferred.
+
 ### Fixed
 
 - `documents search` / `advanced-search`: documented that the
