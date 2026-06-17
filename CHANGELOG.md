@@ -33,6 +33,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   help said "between 0 and 1", which led automation that thresholds
   lookup quality to use the wrong scale. (#138)
 
+- `auth` help now correctly describes the client-credentials flow as
+  **read-only catalog access**. Previously the help said "for the
+  developer's own library", which led users to choose that flow and
+  then hit 403 scope errors for user-library resources (documents,
+  files, folders, annotations, profiles). (#137)
+
 - **Security:** fixed reflected cross-site scripting (XSS) in the local
   OAuth callback server. The `?error=` and `?state=` query parameters
   were interpolated raw into the HTML response page; a crafted redirect
