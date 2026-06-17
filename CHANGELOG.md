@@ -21,6 +21,14 @@ error: "..." }`). Rationale: LLMs and humans consume text more
 
 ### Fixed
 
+- `library stats --limit` now genuinely caps the number of documents
+  scanned. Previously `--limit` was used only as the page size and
+  `collect()` drained every page, so a request to sample a large
+  library caused a full scan. A new `take()` helper stops iteration as
+  soon as the cap is reached, and is also applied to `library recent`
+  (which previously drained the whole library then sliced the result).
+  (#131)
+
 - `documents add-note` (`UserDocument.addNote()`) no longer POSTs to
   `/annotations/` with a trailing slash. The trailing-slash regression
   fixed in #117 only covered `File.addStickyNote()` and
