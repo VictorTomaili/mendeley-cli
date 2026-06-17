@@ -130,7 +130,10 @@ const userMethods = {
   },
   async addNote(text) {
     const annotation = { document_id: this.id, text };
-    const rsp = await this.session.post('/annotations/', {
+    // POST to /annotations (no trailing slash) — #132. The trailing
+    // slash was already fixed for File.addStickyNote / addHighlight
+    // in #117 but missed here.
+    const rsp = await this.session.post('/annotations', {
       data: JSON.stringify(annotation),
       headers: {
         accept: Annotation.contentType,
