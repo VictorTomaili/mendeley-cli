@@ -50,6 +50,10 @@ error: "..." }`). Rationale: LLMs and humans consume text more
 
 ### Fixed
 
+- `USER_AGENT` no longer hard-codes a stale `mendeley-cli/1.0.0`.
+  It is now built from the package version (`mendeley-cli/<version>
+node`), keeping API telemetry and debug logs accurate. (#139)
+
 - `documents search` / `advanced-search`: documented that the
   `/search/documents` endpoint is live and functional (inherited from
   the official Mendeley Python SDK; confirmed by real API consumers),
