@@ -1,5 +1,9 @@
 ## [Unreleased]
 
+_No changes yet._
+
+## [0.4.0] - 2026-06-18
+
 ### Added
 
 - `GET /deleted_documents` is now exposed: a `DeletedDocument` model,
@@ -524,7 +528,8 @@ remove-document` now uses the matching `FolderDocuments.remove()`
   browser-based auth.
 - Node.js 18+ support (ESM only).
 
-[Unreleased]: https://github.com/VictorTomaili/mendeley-cli/compare/v0.1.1...HEAD
+[Unreleased]: https://github.com/VictorTomaili/mendeley-cli/compare/v0.4.0...HEAD
+[0.4.0]: https://github.com/VictorTomaili/mendeley-cli/releases/tag/v0.4.0
+[0.2.0]: https://github.com/VictorTomaili/mendeley-cli/releases/tag/v0.2.0
 [0.1.1]: https://github.com/VictorTomaili/mendeley-cli/releases/tag/v0.1.1
 [0.1.0]: https://github.com/VictorTomaili/mendeley-cli/releases/tag/v0.1.0
-[1.0.0]: https://github.com/VictorTomaili/mendeley-cli/releases/tag/v1.0.0
