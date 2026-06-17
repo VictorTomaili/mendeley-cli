@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Documentation
+
+- The "Built for AI agents" workflow example in the README now passes
+  `--format json` on the `catalog get` and `library add-by-doi` commands
+  whose sample output is JSON. The CLI defaults to text output, so without
+  the flag those commands print key-value text, not the `{ ... }` JSON the
+  example showed. (#173)
+
 ### Fixed
 
 - Upload `Content-Disposition` headers are now standards-compliant

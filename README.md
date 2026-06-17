@@ -325,12 +325,12 @@ $ mendeley catalog search "CRISPR gene editing" --limit 5 --format ids
 
 Agent: Found 5 papers. Let me get details on the first one.
 
-$ mendeley catalog get 436fcd07-37bf-36d8-9d86-3f073872c69d
+$ mendeley catalog get 436fcd07-37bf-36d8-9d86-3f073872c69d --format json
 > { "title": "Current applications and future perspective of CRISPR/Cas9 ...", ... }
 
 Agent: Would you like me to add this to your library?
 
-$ mendeley library add-by-doi 10.1186/s12943-022-01518-8
+$ mendeley library add-by-doi 10.1186/s12943-022-01518-8 --format json
 > { "ok": true, "id": "...", "title": "..." }
 ```
 
