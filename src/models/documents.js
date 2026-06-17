@@ -12,6 +12,7 @@ import { basename } from 'node:path';
 import { Annotation } from './annotations.js';
 import { Arrow, toArrow } from './common.js';
 import { BaseDocument, BaseBibView, BaseClientView } from './base_documents.js';
+import { formatContentDisposition } from '../safe_filename.js';
 import { File } from './files.js';
 import { guessMime } from '../mime.js';
 
@@ -120,7 +121,7 @@ const userMethods = {
     const data = await readFile(filePath);
     const mime = await guessMime(filename);
     const headers = {
-      'content-disposition': `attachment; filename=${filename}`,
+      'content-disposition': formatContentDisposition(filename),
       'content-type': mime,
       link: `<${this.session.host}/documents/${this.id}>; rel="document"`,
       accept: File.contentType,

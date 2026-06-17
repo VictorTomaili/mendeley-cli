@@ -9,6 +9,7 @@ import { tmpdir } from 'node:os';
 import { isAbsolute, join } from 'node:path';
 
 import {
+  formatContentDisposition,
   parseContentDispositionFilename,
   safeFilename,
   safeJoin,
@@ -84,4 +85,53 @@ test('safeJoin throws when the filename would escape the directory', () => {
   // in depth path manually.
   const dir = join(tmpdir(), 'mendeley-test-escape');
   assert.throws(() => safeJoin(dir, '../escape.txt'), /path separator/);
+});
+
+/* ── formatContentDisposition (#140) ─────────────────────────────────────── */
+
+test('formatContentDisposition quotes an ASCII filename (#140)', () => {
+  assert.equal(
+    formatContentDisposition('paper.pdf'),
+    'attachment; filename="paper.pdf"; filename*=UTF-8\'\'paper.pdf',
+  );
+});
+
+test('formatContentDisposition percent-encodes spaces in filename* (#140)', () => {
+  const cd = formatContentDisposition('my file.pdf');
+  assert.match(cd, /filename="my file\.pdf"/); // ASCII fallback keeps the space
+  assert.match(cd, /filename\*=UTF-8''my%20file\.pdf/);
+});
+
+test('formatContentDisposition encodes semicolons so they cannot split the header (#140)', () => {
+  // A raw ';' in the filename would terminate the filename parameter
+  // for naive unquoted parsers. Two protections:
+  //  - the ASCII fallback QUOTES the value, so ';' is harmless inside
+  //    the quotes; and
+  //  - the filename* form percent-encodes it as %3B.
+  const cd = formatContentDisposition('a;b.pdf');
+  assert.match(cd, /filename="a;b\.pdf";/); // quoted → safe
+  assert.match(cd, /filename\*=UTF-8''a%3Bb\.pdf/); // encoded → safe
+});
+
+test('formatContentDisposition escapes embedded quotes in the ASCII fallback (#140)', () => {
+  const cd = formatContentDisposition('quote"weird.pdf');
+  // Embedded " must be backslash-escaped inside the quoted fallback.
+  assert.match(cd, /filename="quote\\"weird\.pdf"/);
+  assert.match(cd, /filename\*=UTF-8''quote%22weird\.pdf/);
+});
+
+test('formatContentDisposition emits UTF-8 percent-encoding for non-ASCII (#140)', () => {
+  const cd = formatContentDisposition('Ünïcödé.pdf');
+  // ASCII fallback replaces non-ASCII with '_'; filename* carries the
+  // exact UTF-8 bytes percent-encoded.
+  assert.match(cd, /filename="_+n_+c_+d_+\.pdf"/);
+  assert.match(cd, /filename\*=UTF-8''%C3%9Cn%C3%AFc%C3%B6d%C3%A9\.pdf/);
+});
+
+test('formatContentDisposition round-trips through the parser (#140)', () => {
+  // A header we generate must parse back to the original filename.
+  for (const f of ['paper.pdf', 'my file.pdf', 'Ünïcödé.pdf', 'quote"x.pdf']) {
+    const cd = formatContentDisposition(f);
+    assert.equal(parseContentDispositionFilename(cd), f, `round-trip failed for ${f}`);
+  }
 });

@@ -4,6 +4,7 @@
 
 import { readFile } from 'node:fs/promises';
 import { basename } from 'node:path';
+import { formatContentDisposition } from '../safe_filename.js';
 
 import { MendeleyException } from '../exception.js';
 import { guessMime } from '../mime.js';
@@ -55,7 +56,7 @@ export class Documents extends DocumentsBase {
     const data = await readFile(filePath);
     const mime = await guessMime(filename);
     const headers = {
-      'content-disposition': `attachment; filename=${filename}`,
+      'content-disposition': formatContentDisposition(filename),
       'content-type': mime,
       accept: UserDocument.contentType,
     };

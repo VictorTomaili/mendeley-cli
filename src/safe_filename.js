@@ -13,6 +13,53 @@
 
 import { isAbsolute, resolve, sep } from 'node:path';
 
+/** @type {TextEncoder} */
+const _encoder = new TextEncoder();
+
+/**
+ * Percent-encode a single character (possibly multi-byte) as UTF-8 for
+ * use in an RFC 5987 `filename*` ext-value.
+ * @param {string} ch
+ * @returns {string}
+ */
+function pctEncodeUtf8(ch) {
+  return Array.from(_encoder.encode(ch))
+    .map((b) => '%' + b.toString(16).toUpperCase().padStart(2, '0'))
+    .join('');
+}
+
+// RFC 5987 attr-char: ALPHA / DIGIT / "-" / "." / "_" / "~".
+// These are the only characters allowed unencoded in an ext-value.
+const ATTR_CHAR = /[A-Za-z0-9\-._~]/;
+
+/**
+ * Build a standards-compliant `Content-Disposition: attachment` value
+ * for a filename (#140).
+ *
+ * Always emits BOTH:
+ *   - a quoted ASCII fallback  `filename="..."`  (RFC 6266), with
+ *     `"` and `\` backslash-escaped and non-ASCII / control chars
+ *     replaced by `_`, so legacy parsers that only read `filename=`
+ *     still get a safe value; and
+ *   - a UTF-8 percent-encoded  `filename*=UTF-8''...`  (RFC 5987), so
+ *     filenames with spaces, quotes, semicolons, or non-ASCII
+ *     characters round-trip exactly on RFC-compliant servers.
+ *
+ * @param {string} filename
+ * @returns {string} e.g. `attachment; filename="my_file.pdf"; filename*=UTF-8''my%20file.pdf`
+ */
+export function formatContentDisposition(filename) {
+  const raw = String(filename ?? '');
+  const asciiFallback = raw
+    .replace(/[\u0000-\u001F\u007F]/g, '_') // control chars
+    .replace(/[^\x20-\x7E]/g, '_') // non-ASCII → '_'
+    .replace(/(["\\])/g, '\\$1'); // escape " and \
+  const extValue = Array.from(raw)
+    .map((ch) => (ATTR_CHAR.test(ch) ? ch : pctEncodeUtf8(ch)))
+    .join('');
+  return `attachment; filename="${asciiFallback}"; filename*=UTF-8''${extValue}`;
+}
+
 /**
  * Validate that `filename` is safe to use as a basename within a target
  * directory.  Throws on any rejection.  Returns the basename unchanged
