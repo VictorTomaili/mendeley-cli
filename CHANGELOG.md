@@ -21,6 +21,15 @@ error: "..." }`). Rationale: LLMs and humans consume text more
 
 ### Fixed
 
+- `files get`, `files download`, `files add-highlight`, and
+  `files add-sticky-note` no longer report files on later pages of a
+  large library as "not found". The internal `findFileById()` lookup
+  now traverses every page (via the files async iterator) instead of
+  searching only the first page, and stops as soon as the file is
+  found. These commands also gain `--document`/`--group`/`--catalog`
+  scope flags so group and catalog files can be looked up directly.
+  (#130)
+
 - Document models now expose every field documented in the
   Mendeley API reference. Previously `toJSON()` silently dropped
   many bibliographic, patent, and core fields because the model
