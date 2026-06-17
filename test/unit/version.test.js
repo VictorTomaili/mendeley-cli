@@ -12,6 +12,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 import { VERSION } from '../../src/index.js';
+import { USER_AGENT } from '../../src/session.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const pkgPath = join(__dirname, '..', '..', 'package.json');
@@ -23,4 +24,16 @@ test('VERSION export matches package.json version (#89)', () => {
 
 test('VERSION is not the stale 1.0.0 (#89)', () => {
   assert.notEqual(VERSION, '1.0.0', 'VERSION must not be the hardcoded stale value');
+});
+
+test('USER_AGENT embeds the package version (#139)', () => {
+  assert.match(
+    USER_AGENT,
+    new RegExp(`mendeley-cli/${pkg.version.replace(/\./g, '\\.')} `),
+    `USER_AGENT must embed package.json version (${pkg.version}); got ${USER_AGENT}`,
+  );
+});
+
+test('USER_AGENT is not the stale 1.0.0 (#139)', () => {
+  assert.doesNotMatch(USER_AGENT, /mendeley-cli\/1\.0\.0/, 'USER_AGENT must not be stale');
 });

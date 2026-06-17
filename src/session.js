@@ -16,7 +16,12 @@ import { Profiles } from './resources/profiles.js';
 import { Trash } from './resources/trash.js';
 import { FolderDocuments } from './resources/folder_documents.js';
 
-export const USER_AGENT = `mendeley-cli/1.0.0 node`;
+// Build the user agent from the package version so it stays in sync
+// with releases (#139). Importing package.json directly avoids a
+// circular import through src/index.js (which re-exports USER_AGENT).
+import pkg from '../package.json' with { type: 'json' };
+export const VERSION = pkg.version;
+export const USER_AGENT = `mendeley-cli/${VERSION} node`;
 
 /**
  * Authentication session.  Holds an OAuth2 token, exposes fetch helpers
