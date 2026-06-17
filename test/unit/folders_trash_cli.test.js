@@ -38,7 +38,10 @@ test('folders add-document posts with the document content-type (not 415)', asyn
   servers.push(server);
   const { env } = createEnv(host);
 
-  const result = await runCli(['folders', 'add-document', 'folder-1', 'doc-1'], { env });
+  const result = await runCli(
+    ['--format', 'json', 'folders', 'add-document', 'folder-1', 'doc-1'],
+    { env },
+  );
 
   assert.equal(result.code, 0, result.stderr || result.stdout);
   assert.ok(captured.post, 'POST /folders/{id}/documents must be received');
@@ -64,7 +67,10 @@ test('folders remove-document deletes the membership', async () => {
   servers.push(server);
   const { env } = createEnv(host);
 
-  const result = await runCli(['folders', 'remove-document', 'folder-1', 'doc-1'], { env });
+  const result = await runCli(
+    ['--format', 'json', 'folders', 'remove-document', 'folder-1', 'doc-1'],
+    { env },
+  );
 
   assert.equal(result.code, 0, result.stderr || result.stdout);
   assert.equal(captured.deleteUrl, '/folders/folder-1/documents/doc-1');
@@ -78,7 +84,7 @@ test('trash empty does not send an invalid view param (#4)', async () => {
   servers.push(server);
   const { env } = createEnv(host);
 
-  const result = await runCli(['trash', 'empty', '--yes'], { env });
+  const result = await runCli(['--format', 'json', 'trash', 'empty', '--yes'], { env });
 
   assert.equal(result.code, 0, result.stderr || result.stdout);
   // The list request must NOT carry view=core (or any view param that

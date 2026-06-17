@@ -80,7 +80,7 @@ function runCli(args, { env, timeoutMs = 15000 } = {}) {
 
 test('catalog by-identifier with no flags fails with a clean JSON error (#126)', async () => {
   const env = createEnv();
-  const result = await runCli(['catalog', 'by-identifier'], { env });
+  const result = await runCli(['--format', 'json', 'catalog', 'by-identifier'], { env });
   assert.notEqual(result.code, 0);
   const out = JSON.parse(result.stdout);
   assert.equal(out.ok, false);
@@ -91,7 +91,7 @@ test('catalog by-identifier with no flags fails with a clean JSON error (#126)',
 test('catalog by-identifier with multiple flags fails cleanly (#126)', async () => {
   const env = createEnv();
   const result = await runCli(
-    ['catalog', 'by-identifier', '--doi', '10.1/x', '--arxiv', '1706.03762'],
+    ['--format', 'json', 'catalog', 'by-identifier', '--doi', '10.1/x', '--arxiv', '1706.03762'],
     { env },
   );
   assert.notEqual(result.code, 0);
@@ -102,7 +102,7 @@ test('catalog by-identifier with multiple flags fails cleanly (#126)', async () 
 
 test('catalog by-identifier error does not attempt a network call (#126)', async () => {
   const env = createEnv();
-  const result = await runCli(['catalog', 'by-identifier'], { env });
+  const result = await runCli(['--format', 'json', 'catalog', 'by-identifier'], { env });
   // The host points at a dead port. If a network call were attempted we
   // would see a "Network request failed" / ECONNREFUSED-style message,
   // not the clean validation error.

@@ -40,7 +40,7 @@ _Query 100 M+ academic papers, manage your library, export BibTeX — from the t
 
 The official Mendeley SDK is Python-only and hasn't been updated in years. This project provides:
 
-- **A shell CLI** (`mendeley`) that defaults to **JSON output** — perfect for scripting and AI agents
+- **A shell CLI** (`mendeley`) that defaults to **text output** (LLM/human-friendly), with `--format json|tsv|ids` available for scripting and `jq`
 - **A JavaScript library** (`import { Mendeley } from 'mendeley-cli'`) for Node.js 22+
 - **Zero dependencies** (pure Node.js, no runtime deps)
 - **PKCE auth** with automatic token refresh — log in once, stay logged in
@@ -149,8 +149,8 @@ mendeley --skill                      # full API as a skill document (for AI sys
 
 | Flag                        | Format                 | Use case                  |
 | --------------------------- | ---------------------- | ------------------------- |
-| `--format json` _(default)_ | JSON                   | AI agents, piping to `jq` |
-| `--format text`             | Key-value              | Quick human reading       |
+| `--format text` _(default)_ | Key-value              | Quick reading, LLM use    |
+| `--format json`             | JSON                   | AI agents, piping to `jq` |
 | `--format tsv`              | Tab-separated          | Spreadsheet import        |
 | `--format ids`              | Bare IDs, one per line | Piping to `xargs`         |
 
@@ -302,7 +302,7 @@ console.log(`Hello, ${me.first_name}`);
 
 The CLI is designed as a **tool** that AI agents can call directly. Key design decisions:
 
-1. **JSON by default** — output is always valid JSON, ready for parsing
+1. **Text by default, JSON on demand** — output defaults to LLM/human-friendly text; pass `--format json` for machine-parseable output
 2. **`--skill` flag** — prints the entire CLI surface as a Markdown document you can paste into a system prompt:
 
    ```bash

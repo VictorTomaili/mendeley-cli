@@ -39,6 +39,8 @@ test('files add-sticky-note posts to /annotations (not the blob endpoint)', asyn
 
   const result = await runCli(
     [
+      '--format',
+      'json',
       'files',
       'add-sticky-note',
       'file-1',
@@ -79,6 +81,8 @@ test('files add-highlight posts to /annotations (not the blob endpoint)', async 
 
   const result = await runCli(
     [
+      '--format',
+      'json',
       'files',
       'add-highlight',
       'file-1',
@@ -234,7 +238,7 @@ test('files get returns the metadata JSON (not the blob)', async () => {
   servers.push(server);
   const { env } = createEnv(host);
 
-  const result = await runCli(['files', 'get', 'file-1'], { env });
+  const result = await runCli(['--format', 'json', 'files', 'get', 'file-1'], { env });
 
   assert.equal(result.code, 0, result.stderr || result.stdout);
   const out = JSON.parse(result.stdout);

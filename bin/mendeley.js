@@ -2,8 +2,9 @@
 /**
  * `mendeley` - a CLI for the Mendeley API, designed for AI agents.
  *
- * The CLI defaults to JSON output (the format most useful for AI
- * agents) but accepts `--format text|tsv|ids` for human consumption.
+ * The CLI defaults to text output (the format most useful for LLMs
+ * and humans) but accepts `--format json|tsv|ids` when machine-parseable
+ * output is needed.
  *
  * It also exposes a `--skill` flag that prints the entire command
  * surface as a "skill" description, suitable for pasting into an
@@ -44,7 +45,7 @@ root.longDescription(
     '"Calling mendeley from another language on Windows" section.',
 );
 
-root.option('--format <fmt>', 'output format (json, text, tsv, ids)', 'json');
+root.option('--format <fmt>', 'output format (text, json, tsv, ids)', 'text');
 root.option('--quiet', 'suppress non-essential output', false);
 root.option('--help', 'show help', false);
 root.option('--skill', 'print the full CLI as a skill description', false);
@@ -52,7 +53,7 @@ root.option('--version', 'show version', false);
 
 root.example('mendeley --help');
 root.example('mendeley --skill');
-root.example('mendeley --format text documents list --limit 5');
+root.example('mendeley documents list --limit 5');
 root.example('mendeley --format ids catalog search "machine learning" --limit 20');
 root.example('mendeley whoami');
 root.example('mendeley auth login');
@@ -106,12 +107,12 @@ libraryCmd.register(root);
 
   // Pick up the --format flag early so error output matches.
   const formatFlagIdx = argv.findIndex((a) => a === '--format' || a.startsWith('--format='));
-  let format = 'json';
+  let format = 'text';
   if (formatFlagIdx >= 0) {
     if (argv[formatFlagIdx].startsWith('--format=')) {
       format = argv[formatFlagIdx].slice('--format='.length);
     } else {
-      format = argv[formatFlagIdx + 1] || 'json';
+      format = argv[formatFlagIdx + 1] || 'text';
     }
   }
   let out;
@@ -166,7 +167,7 @@ function renderSkill(root) {
     `You can manage a Mendeley library by running shell commands that start with \`mendeley\`.`,
   );
   lines.push(
-    `The default output format is JSON.  Use \`--format text|tsv|ids\` for human-readable output.`,
+    `The default output format is text.  Use \`--format json|tsv|ids\` for machine-parseable output.`,
   );
   lines.push(
     `Every command supports \`--help\` for detailed usage and \`--skill\` (on the root) for the full reference.`,
@@ -188,8 +189,8 @@ function renderSkill(root) {
   }
   lines.push('');
   lines.push(`## Output formats`);
-  lines.push(`  json — single JSON document (default; ideal for AI agents)`);
-  lines.push(`  text — pretty-printed summary, one record per line`);
+  lines.push(`  text — pretty-printed summary, one record per line (default)`);
+  lines.push(`  json — single JSON document (ideal for machine parsing)`);
   lines.push(`  tsv  — tab-separated values with a header row`);
   lines.push(`  ids  — bare identifiers, one per line`);
   lines.push('');

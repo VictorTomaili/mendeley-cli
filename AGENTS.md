@@ -145,9 +145,11 @@ Local note: if the environment routes `npm` through another package manager and 
 
 ## CLI Contract
 
-- JSON is the default output and must remain machine-parseable.
-- CLI errors in JSON mode are objects shaped like `{ "ok": false, "error": "..." }`.
-- Supported output formats are exactly `json`, `text`, `tsv`, and `ids` unless the request explicitly changes the contract.
+- Text is the default output (LLM/human-friendly key-value). JSON
+  remains fully available via `--format json` for machine parsing.
+- CLI errors in text mode are printed to stderr as `error: <message>`;
+  in JSON mode they are objects shaped like `{ "ok": false, "error": "..." }`.
+- Supported output formats are exactly `text`, `json`, `tsv`, and `ids` unless the request explicitly changes the contract.
 - Every new command or option needs help text and at least one concrete example.
 - If a new boolean flag has no value, add it to `BOOLEAN_FLAGS` in `lib/cli/argparse.js`; otherwise the parser may consume the next token as its value.
 - Preserve the top-level `whoami` alias unless the user explicitly removes it.

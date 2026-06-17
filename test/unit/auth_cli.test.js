@@ -37,7 +37,7 @@ test('auth exchange saves tokens without printing bearer material', async () => 
     }),
   );
 
-  const result = await runCli(['auth', 'exchange', 'AUTH_CODE'], { env });
+  const result = await runCli(['--format', 'json', 'auth', 'exchange', 'AUTH_CODE'], { env });
 
   assert.equal(result.code, 0, result.stderr || result.stdout);
   assert.doesNotMatch(result.stdout, new RegExp(ACCESS_TOKEN));
@@ -63,7 +63,7 @@ test('auth login saves tokens without printing bearer material', async () => {
   // Bare code (no URL state) — this test is about token redaction, not
   // state validation. See the dedicated state-mismatch tests for the
   // state-validation behavior.
-  const result = await runCli(['auth', 'login'], {
+  const result = await runCli(['--format', 'json', 'auth', 'login'], {
     env,
     input: 'AUTH_CODE\n',
   });
@@ -202,7 +202,7 @@ test('auth url saves PKCE verifier to disk without printing it', async () => {
   // locally and never hits the network.
   const { env, home } = createAuthEnv('http://api.test.invalid');
 
-  const result = await runCli(['auth', 'url'], { env });
+  const result = await runCli(['--format', 'json', 'auth', 'url'], { env });
 
   assert.equal(result.code, 0, result.stderr || result.stdout);
   // The verifier (a 43-128 char string) must not appear anywhere in stdout.
