@@ -89,6 +89,7 @@ export { File } from './models/files.js';
 export { Folder } from './models/folders.js';
 export { Group, GroupMember } from './models/groups.js';
 export { Profile } from './models/profiles.js';
+export { DeletedDocument } from './models/deleted_documents.js';
 
 // Resources
 export { Annotations } from './resources/annotations.js';
@@ -99,6 +100,7 @@ export { Folders } from './resources/folders.js';
 export { GroupMembers, Groups } from './resources/groups.js';
 export { Profiles } from './resources/profiles.js';
 export { Trash } from './resources/trash.js';
+export { DeletedDocuments } from './resources/deleted_documents.js';
 
 // Version — read from package.json so it stays in sync with releases (#89).
 import pkg from '../package.json' with { type: 'json' };
